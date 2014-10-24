@@ -1,28 +1,29 @@
-OpenStack配置脚本
+OpenShit, OpenStack HITter
 
-v0.0.1
-  一键安装以下软件 (基于apt-get)
-  
-    依赖:
+Version 0.0.1
+
+  support ubuntu 14.04 (server/desktop)
+
+  Auto install package (base on apt-get), configure components.
+
+    Dependence:
       mysql, rabbitmq, ntp
 
-    OpenStack组建:
+    Components:
       KeyStone,Glance,Nova,Cinder
 
-  一键配置OpenStack:
 
-    OpenStack各组件配置
+Usage:
 
-使用:
+  Configure apt-get source for first run, execute:
 
-  第一次安装 需配置软件源 先执行
-    
     sh pre_install.sh
 
 
-  安装所需软件
+  Install package
 
     sh install.sh
 
-  卸载
+  Uninstall
+
     sh uninstall.sh
