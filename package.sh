@@ -21,33 +21,35 @@ do_install()
 {
   echo Installing...
   do_checkfile
-  cat $DEPENDENCE_LIST | while read line; do sudo apt-get -y install $line; done
-  cat $OPENSTACK_LIST | while read line; do sudo apt-get -y install $line; done
+  sudo apt-get autoremove
+  for line in `cat $DEPENDENCE_LIST`; do sudo apt-get -y install $line; done
+  for line in `cat $OPENSTACK_LIST`; do sudo apt-get -y install $line; done
 }
 
 do_download()
 {
   echo Downloading...
   do_checkfile
-  cat $DEPENDENCE_LIST | while read line; do sudo apt-get -d install $line; done
-  cat $OPENSTACK_LIST | while read line; do sudo apt-get -d install $line; done
+  for line in `cat $DEPENDENCE_LIST`; do sudo apt-get -y -d install $line; done
+  for line in `cat $OPENSTACK_LIST`; do sudo apt-get -y -d install $line; done
 }
 
 do_uninstall()
 {
   echo Uninstalling...
   do_checkfile
-  cat $OPENSTACK_LIST | while read line; do sudo apt-get --purge remove $line; done
+  sudo apt-get autoremove
+  for line in `cat $OPENSTACK_LIST`; do sudo apt-get -y --purge remove $line; done
+  sudo apt-get autoremove
   echo "Do you want to REMOVE dependence software package?"
   cat $DEPENDENCE_LIST | xargs echo "   "
-  echo "Can not Undo. REMOVE? (Y/N)[default=N]\c"
-  line=n
-  read line
-  if [ ! -n $line ]; then
+  read -p "Can not Undo. REMOVE? (Y/N)[default=N]" line
+  if [ ! -z $line ]; then
     if [ "y" = $line -o "Y" = $line ]; then
-      cat $DEPENDENCE_LIST | while read line; do sudo apt-get --purge remove $line; done 
+      for line in `cat $DEPENDENCE_LIST`; do sudo apt-get -y --purge remove $line; done 
     fi
   fi
+  sudo apt-get autoremove
 }
 
 help()
