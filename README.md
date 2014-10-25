@@ -19,11 +19,14 @@ Usage:
 
     sh pre_install.sh
 
+  Download package (no install)
+
+    sh package.sh download
 
   Install package
 
-    sh install.sh
+    sh package.sh install
 
   Uninstall
 
-    sh uninstall.sh
+    sh package.sh uninstall

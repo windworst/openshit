@@ -1,0 +1,3 @@
+ntp
+mariadb-server python-mysqldb
+rabbitmq-server
