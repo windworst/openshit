@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "SET_RABBITMQ_PASS=$SET_RABBITMQ_PASS"
+sudo rabbitmqctl change_password guest $SET_RABBITMQ_PASS
