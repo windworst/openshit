@@ -26,7 +26,7 @@ if [ $# -le 0 ]; then
   help
 elif [ -e "config/"$1 ]; then
   do_export
-  source "config/"$1
+  source "config/"$1 $@
 else
   help
 fi
