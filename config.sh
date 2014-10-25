@@ -1,35 +1,32 @@
-#!/bin/sh
+#!/bin/bash
 SCRIPT_NAME=config.sh
-CONFIG_INPUT=config.template
-CONFIG_OUTPUT=config.list
+CONFIG_FILE=openshit.conf
 
-do_set()
+do_export()
 {
-  rm -rf $CONFIG_OUTPUT
-  for key in `cat $CONFIG_INPUT`;
+  if [ ! -e $CONFIG_FILE ]; then
+    echo "$CONFIG_FILE not exsit"
+    exit 1
+  fi
+
+  echo "Loading..configuration"
+  source $CONFIG_FILE
+}
+
+help()
+{
+  echo "usage: "
+  for item in `ls config`;
   do
-    read -p "$key" value
-    if [ ! -z $value ]; then
-      echo "${key}${value}" >> $CONFIG_OUTPUT
-    fi
+    echo "  " $SCRIPT_NAME $item
   done
 }
 
-do_list()
-{
-  echo ""
-  cat $CONFIG_OUTPUT
-  echo ""
-}
-
-if [ -e $CONFIG_OUTPUT ]; then
-  do_list
-  read -p "Do you want to reset? [Y/n](default=N)" line
-  if [ ! -z $line ]; then
-    if [ "Y" = $line -o "y" = $line ]; then
-      do_set
-    fi
-  fi
+if [ $# -le 0 ]; then
+  help
+elif [ -e "config/"$1 ]; then
+  do_export
+  source "config/"$1
 else
-  do_set
+  help
 fi
