@@ -1,8 +1,9 @@
 #!/bin/bash
+PACKAGES="rabbitmq-server"
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <config|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|config|start|stop|restart>"
 }
 
 do_config()
@@ -22,6 +23,12 @@ elif [ "config" = $2 ]; then
   do_config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
   do_service $2
+elif [ "install" = $2 ]; then
+  do_install $PACKAGES
+elif [ "uninstall" = $2 ]; then
+  do_uninstall $PACKAGES
+elif [ "download" = $2 ]; then
+  do_download $PACKAGES
 else
   help
 fi

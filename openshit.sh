@@ -16,10 +16,10 @@ do_export()
 }
 
 # args: dbname
-init_database()
+drop_database()
 {
   local DBNAME=$1
-  echo "Init Database ${DBNAME}"
+  echo "Drop Database ${DBNAME}"
   echo "DROP DATABASE IF EXISTS ${DBNAME};" \
   | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
 }
@@ -28,7 +28,7 @@ set_database()
 {
   local DBNAME=$1
   local DBPASS=$2
-  echo "Config Database ${DBNAME}"
+  echo "Set Database ${DBNAME}"
   echo "CREATE DATABASE IF NOT EXISTS ${DBNAME};
   GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'localhost' \
     IDENTIFIED BY '${DBPASS}';
@@ -78,6 +78,27 @@ set_conf_arg()
   local FILE=$3
   echo "${FILE}: ${NEW}"
   sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
+}
+
+# args : package-list
+do_install()
+{
+  echo "Installing: $@"
+  sudo apt-get -y install $@
+}
+
+# args : package-list
+do_download()
+{
+  echo "Downloading: $@"
+  sudo apt-get -y -d install $@
+}
+
+# args : package-list
+do_uninstall()
+{
+  echo "Uninstalling: $@"
+  sudo apt-get -y --purge remove $@
 }
 
 help()

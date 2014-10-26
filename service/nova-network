@@ -1,9 +1,10 @@
 #!/bin/bash
 NOVA_CONF_FILE=/etc/nova/nova.conf
+PACKAGES="nova-network"
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <config|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|config|start|stop|restart>"
 }
 
 do_service()
@@ -38,8 +39,8 @@ edit_conf()
   set_conf_arg "share_dhcp_address" "share_dhcp_address = True" $NOVA_CONF_FILE
   set_conf_arg "force_dhcp_release" "force_dhcp_release = True" $NOVA_CONF_FILE
   set_conf_arg "flat_network_bridge" "flat_network_bridge = br100" $NOVA_CONF_FILE
-  set_conf_arg "flat_interface" "flat_interface = INTERFACE_NAME" $NOVA_CONF_FILE
-  set_conf_arg "public_interface" "public_interface = INTERFACE_NAME" $NOVA_CONF_FILE
+  set_conf_arg "flat_interface" "flat_interface = ${SET_INTERFACE_NAME}" $NOVA_CONF_FILE
+  set_conf_arg "public_interface" "public_interface = ${INTERFACE_NAME}" $NOVA_CONF_FILE
 }
 
 if [ $# -lt 2 ]; then
@@ -50,6 +51,12 @@ elif [ "config" = $2 ]; then
   do_config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
   do_service $2
+elif [ "install" = $2 ]; then
+  do_install $PACKAGES
+elif [ "uninstall" = $2 ]; then
+  do_uninstall $PACKAGES
+elif [ "download" = $2 ]; then
+  do_download $PACKAGES
 else
   help
 fi

@@ -1,17 +1,18 @@
 #!/bin/bash
 CINDER_CONF_FILE=/etc/cinder/cinder.conf
+PACKAGES="cinder-api cinder-scheduler python-cinderclient cinder-volume"
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <init|config|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|clean|config|start|stop|restart>"
 }
 
-do_init()
+do_clean()
 {
-  init_database $SERVICE_NAME
-  do_config
-
+  delete_user
+  drop_database $SERVICE_NAME
 }
+
 do_service()
 {
   sudo service cinder-scheduler $1
@@ -81,12 +82,18 @@ delete_user()
 
 if [ $# -lt 2 ]; then
   help
-elif [ "init" = $2 ]; then
-  do_init
+elif [ "clean" = $2 ]; then
+  do_clean
 elif [ "config" = $2 ]; then
   do_config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
   do_service $2
+elif [  "install" = $2 ]; then
+  do_install $PACKAGES
+elif [  "uninstall" = $2 ]; then
+  do_uninstall $PACKAGES
+elif [  "download" = $2 ]; then
+  do_download $PACKAGES
 else
   help
 fi

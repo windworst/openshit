@@ -1,4 +1,0 @@
-ntp
-mariadb-server python-mysqldb
-apache2 libapache2-mod-wsgi
-rabbitmq-server
