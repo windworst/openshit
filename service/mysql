@@ -4,7 +4,7 @@ SUB_SCRIPT_NAME=mysql
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <config|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <init|config|start|stop|restart>"
 }
 
 do_config()
@@ -30,7 +30,7 @@ do_service()
 
 if [ $# -lt 2 ]; then
   help
-elif [ "config" = $2 ]; then
+elif [ "config" = $2 -o "init" = $2 ]; then
   do_config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
   do_service $2

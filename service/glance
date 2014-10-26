@@ -1,26 +1,31 @@
 #!/bin/bash
 GLANCE_API_CONF_FILE=/etc/glance/glance-api.conf
 GLANCE_REGISTRY_CONF=/etc/glance/glance-registry.conf
-SUB_SCRIPT_NAME=keystone
+SERVICE_NAME=glance
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <init|config|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SERVICE_NAME <init|config|start|stop|restart>"
 }
 
 do_init()
 {
-  init_database "glance"
+  init_database $SERVICE_NAME
   do_config
+}
+
+do_service()
+{
+  sudo service glance-registry $1
+  sudo service glance-api $1
 }
 
 do_config()
 {
-  set_database "glance" $SET_GLANCE_DBPASS
+  set_database $SERVICE_NAME $SET_GLANCE_DBPASS
   source $ADMIN_ENV_FILE
-  remove_service "glance"
+  delete_user
   create_user
-  create_service
 
   #config $GLANCE_API_CONFIG_FILE
   add_args_to_section $GLANCE_API_CONF_FILE "\[keystone_authtoken\]" "auth_uri"
@@ -44,7 +49,7 @@ do_config()
   set_conf_arg "flavor" "flavor = keystone" $GLANCE_REGISTRY_CONF
   set_conf_arg "verbose" "verbose = True" $GLANCE_REGISTRY_CONF
 
-  sudo su -s /bin/sh -c "glance-manage db_sync" glance
+  sudo su -s /bin/sh -c "glance-manage db_sync" $SERVICE_NAME
   do_service restart
 }
 
@@ -52,10 +57,7 @@ create_user()
 {
   keystone user-create --name glance --pass $SET_GLANCE_DBPASS
   keystone user-role-add --user glance --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
-}
 
-create_service()
-{
   keystone service-create --name glance --type image \
     --description "OpenStack Image Service"
   keystone endpoint-create \
@@ -66,10 +68,10 @@ create_service()
     --region regionOne
 }
 
-do_service()
+delete_user()
 {
-  sudo service glance-registry $1
-  sudo service glance-api $1
+  keystone user-delete $SERVICE_NAME
+  keystone service-delete $SERVICE_NAME
 }
 
 if [ $# -lt 2 ]; then

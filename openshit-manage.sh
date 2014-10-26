@@ -80,14 +80,6 @@ set_conf_arg()
   sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
 }
 
-# args: service name
-remove_service()
-{
-  local SERVICE_NAME=$1
-  keystone user-delete $SERVICE_NAME
-  keystone service-delete $SERVICE_NAME
-}
-
 help()
 {
   echo "usage: "
