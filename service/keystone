@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "DROP DATABASE IF EXISTS keystone;\
+  CREATE DATABASE keystone;\
+  GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' \
+  IDENTIFIED BY '${SET_KEYSTONE_DBPASS}';
+GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' \
+  IDENTIFIED BY '${SET_KEYSTONE_DBPASS}';" \
+  | mysql -u$SET_MYSQL_USER -p$SET_MYSQL_PASS
