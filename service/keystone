@@ -7,6 +7,25 @@ help()
   echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <config|clean|start|stop|restart>"
 }
 
+do_config()
+{
+  set_database "keystone" $SET_KEYSTONE_DBPASS
+
+  set_conf_arg "admin_token" "admin_token=${SET_OS_SERVICE_TOKEN}" $KEYSTONE_CONF_FILE
+  set_conf_arg "connection" "connection=mysql://keystone:$SET_KEYSTONE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT\/keystone" $KEYSTONE_CONF_FILE
+  set_conf_arg "verbose" "verbose=True" $KEYSTONE_CONF_FILE
+
+  sudo su -s /bin/sh -c "keystone-manage db_sync" keystone
+  do_service restart
+
+  echo "Waiting for service keystone start..."
+  sleep 5
+  source $SERVICE_ENV_FILE
+  create_user
+  create_service
+  source $ADMIN_ENV_FILE
+}
+
 create_user()
 {
   keystone tenant-create --name $SET_KEYSTONE_ADMIN_TENANT --description "${SET_KEYSTONE_ADMIN} Tenant"
@@ -27,25 +46,6 @@ create_service()
   --internalurl http://$SET_CONTROLLER_IP:5000/v2.0 \
   --adminurl http://$SET_CONTROLLER_IP:35357/v2.0 \
   --region regionOne
-}
-
-do_config()
-{
-  set_database "keystone" $SET_KEYSTONE_DBPASS
- 
-  set_conf_arg "admin_token=" $SET_OS_SERVICE_TOKEN $KEYSTONE_CONF_FILE
-  set_conf_arg "connection=" "mysql:\/\/keystone:$SET_KEYSTONE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT\/keystone" $KEYSTONE_CONF_FILE
-  set_conf_arg "verbose=" "True" $KEYSTONE_CONF_FILE
-
-  sudo su -s /bin/sh -c "keystone-manage db_sync" keystone
-  do_service restart
-
-  echo "Waiting for service keystone start..."
-  sleep 5
-  source $SERVICE_ENV_FILE
-  create_user
-  create_service
-  source $ADMIN_ENV_FILE
 }
 
 do_service()

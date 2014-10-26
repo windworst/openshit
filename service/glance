@@ -1,0 +1,79 @@
+#!/bin/bash
+GLANCE_API_CONF_FILE=/etc/glance/glance-api.conf
+GLANCE_REGISTRY_CONF=/etc/glance/glance-registry.conf
+SUB_SCRIPT_NAME=keystone
+
+help()
+{
+  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <config|clean|start|stop|restart>"
+}
+
+create_user()
+{
+  keystone user-create --name glance --pass $SET_GLANCE_DBPASS
+  keystone user-role-add --user glance --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
+}
+
+create_service()
+{
+  keystone service-create --name glance --type image \
+    --description "OpenStack Image Service"
+  keystone endpoint-create \
+    --service-id $(keystone service-list | awk '/ image / {print $2}') \
+    --publicurl http://$SET_CONTROLLER_IP:9292 \
+    --internalurl http://$SET_CONTROLLER_IP:9292 \
+    --adminurl http://$SET_CONTROLLER_IP:9292 \
+    --region regionOne
+}
+
+do_config()
+{
+  set_database "glance" $SET_GLANCE_DBPASS
+  source $ADMIN_ENV_FILE
+  remove_service "glance"
+  create_user
+  create_service
+
+  #config $GLANCE_API_CONFIG_FILE
+  add_args_to_section $GLANCE_API_CONF_FILE "\[keystone_authtoken\]" "auth_uri"
+
+  set_conf_arg "connection" "connection = mysql://glance:$SET_GLANCE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT/glance" $GLANCE_API_CONF_FILE
+  set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL}" $GLANCE_API_CONF_FILE
+  set_conf_arg "admin_tenant_name" "admin_tenant_name = ${SET_KEYSTONE_ADMIN_TENANT}" $GLANCE_API_CONF_FILE
+  set_conf_arg "admin_user" "admin_user = ${SET_KEYSTONE_ADMIN}" $GLANCE_API_CONF_FILE
+  set_conf_arg "admin_password" "admin_password = ${SET_KEYSTONE_ADMIN_PASS}" $GLANCE_API_CONF_FILE
+  set_conf_arg "flavor" "flavor = keystone" $GLANCE_API_CONF_FILE
+  set_conf_arg "verbose" "verbose = True" $GLANCE_API_CONF_FILE
+
+  #config $GLANCE_REGISTRY_CONF
+  add_args_to_section $GLANCE_REGISTRY_CONF "\[keystone_authtoken\]" "auth_uri"
+
+  set_conf_arg "connection" "connection = mysql://glance:$SET_GLANCE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT/glance" $GLANCE_REGISTRY_CONF
+  set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL_PUBLIC}" $GLANCE_REGISTRY_CONF
+  set_conf_arg "admin_tenant_name" "admin_tenant_name = ${SET_KEYSTONE_ADMIN_TENANT}" $GLANCE_REGISTRY_CONF
+  set_conf_arg "admin_user" "admin_user = ${SET_KEYSTONE_ADMIN}" $GLANCE_REGISTRY_CONF
+  set_conf_arg "admin_password" "admin_password = ${SET_KEYSTONE_ADMIN_PASS}" $GLANCE_REGISTRY_CONF
+  set_conf_arg "flavor" "flavor = keystone" $GLANCE_REGISTRY_CONF
+  set_conf_arg "verbose" "verbose = True" $GLANCE_REGISTRY_CONF
+
+  sudo su -s /bin/sh -c "glance-manage db_sync" glance
+  do_service restart
+}
+
+do_service()
+{
+  sudo service glance-registry $1
+  sudo service glance-api $1
+}
+
+if [ $# -lt 2 ]; then
+  help
+elif [ "config" = $2 ]; then
+  do_config
+elif [ "clean" = $2 ]; then
+  do_clean_expired_token
+elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
+  do_service $2
+else
+  help
+fi

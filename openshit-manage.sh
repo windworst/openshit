@@ -18,8 +18,8 @@ do_export()
 # args: dbname password
 set_database()
 {
-  DBNAME=$1
-  DBPASS=$2
+  local DBNAME=$1
+  local DBPASS=$2
   echo "Create Database ${DBNAME}"
   echo "DROP DATABASE IF EXISTS ${DBNAME};\
     CREATE DATABASE ${DBNAME};\
@@ -30,14 +30,55 @@ set_database()
     | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
 }
 
-# args: key value file
+#args: file section arg1 arg2 arg3 ......
+add_args_to_section()
+{
+  local FILE=$1
+  local SECTION=$2
+  local count=3
+  if [ $# -lt $count ]; then
+    return
+  fi
+
+  grep -q $SECTION $FILE 2>/dev/null
+  if [ $? -eq 0 ]; then
+    while (($count<=$#));
+    do
+      grep -q ${!count} $FILE 2>/dev/null
+      if [ $? -ne 0 ]; then
+        sudo sed -i "s/${SECTION}/${SECTION}\n${!count}/g" $FILE
+      fi
+      let ++count
+    done
+  else
+    sudo sh -c "echo ${SECTION} >> ${FILE}"
+    while (($count<=$#));
+    do
+      grep -q ${!count} $FILE 2>/dev/null
+      if [ $? -ne 0 ]; then
+        sudo sh -c "echo ${!count} >> ${FILE}"
+      fi
+      let ++count
+    done
+  fi
+}
+
+# args: old new file
 set_conf_arg()
 {
-  KEY=$1
-  VALUE=$2
-  FILE=$3
-  echo "${FILE}: ${KEY}${VALUE}"
-  sudo sed -i "s/^[#, ]*${KEY}.*/${KEY}${VALUE}/g" ${FILE}
+  local OLD=$1
+  local NEW=$2
+  local FILE=$3
+  echo "${FILE}: ${NEW}"
+  sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
+}
+
+# args: service name
+remove_service()
+{
+  local SERVICE_NAME=$1
+  keystone user-delete $SERVICE_NAME
+  keystone service-delete $SERVICE_NAME
 }
 
 help()
