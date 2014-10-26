@@ -1,7 +1,7 @@
 #!/bin/bash
-SCRIPT_NAME=openshit-manage.sh
-CONFIG_FILE=openshit.conf
-SERVICE_PATH=service
+SCRIPT_NAME=openshit.sh
+CONFIG_FILE=setting.conf
+SERVICE_PATH=services
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
 

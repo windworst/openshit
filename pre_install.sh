@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Configure sourcelist
 sudo sh -c "echo deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/juno main > /etc/apt/sources.list.d/ubuntu-cloud-archive-juno-trusty.list"
 

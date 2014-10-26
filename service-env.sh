@@ -1,5 +1,5 @@
 #!/bin/bash
-source openshit.conf
+source setting.conf
 unset OS_TENANT_NAME OS_USERNAME OS_PASSWORD OS_AUTH_URL
 export OS_SERVICE_TOKEN=$SET_OS_SERVICE_TOKEN
 export OS_SERVICE_ENDPOINT=$SET_KEYSTONE_AUTH_URL
