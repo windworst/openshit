@@ -4,7 +4,13 @@ SUB_SCRIPT_NAME=keystone
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <config|clean|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <init|config|clean|start|stop|restart>"
+}
+
+do_init()
+{
+  init_database "keystone"
+  do_config
 }
 
 do_config()
@@ -62,6 +68,8 @@ do_clean_expired_token()
 
 if [ $# -lt 2 ]; then
   help
+elif [ "init" = $2 ]; then
+  do_init
 elif [ "config" = $2 ]; then
   do_config
 elif [ "clean" = $2 ]; then

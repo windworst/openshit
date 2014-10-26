@@ -5,25 +5,13 @@ SUB_SCRIPT_NAME=keystone
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <config|clean|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <init|config|start|stop|restart>"
 }
 
-create_user()
+do_init()
 {
-  keystone user-create --name glance --pass $SET_GLANCE_DBPASS
-  keystone user-role-add --user glance --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
-}
-
-create_service()
-{
-  keystone service-create --name glance --type image \
-    --description "OpenStack Image Service"
-  keystone endpoint-create \
-    --service-id $(keystone service-list | awk '/ image / {print $2}') \
-    --publicurl http://$SET_CONTROLLER_IP:9292 \
-    --internalurl http://$SET_CONTROLLER_IP:9292 \
-    --adminurl http://$SET_CONTROLLER_IP:9292 \
-    --region regionOne
+  init_database "glance"
+  do_config
 }
 
 do_config()
@@ -60,6 +48,24 @@ do_config()
   do_service restart
 }
 
+create_user()
+{
+  keystone user-create --name glance --pass $SET_GLANCE_DBPASS
+  keystone user-role-add --user glance --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
+}
+
+create_service()
+{
+  keystone service-create --name glance --type image \
+    --description "OpenStack Image Service"
+  keystone endpoint-create \
+    --service-id $(keystone service-list | awk '/ image / {print $2}') \
+    --publicurl http://$SET_CONTROLLER_IP:9292 \
+    --internalurl http://$SET_CONTROLLER_IP:9292 \
+    --adminurl http://$SET_CONTROLLER_IP:9292 \
+    --region regionOne
+}
+
 do_service()
 {
   sudo service glance-registry $1
@@ -68,10 +74,10 @@ do_service()
 
 if [ $# -lt 2 ]; then
   help
+elif [ "init" = $2 ]; then
+  do_init
 elif [ "config" = $2 ]; then
   do_config
-elif [ "clean" = $2 ]; then
-  do_clean_expired_token
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
   do_service $2
 else

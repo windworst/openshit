@@ -15,15 +15,22 @@ do_export()
   source $CONFIG_FILE
 }
 
+# args: dbname
+init_database()
+{
+  local DBNAME=$1
+  echo "Init Database ${DBNAME}"
+  echo "DROP DATABASE IF EXISTS ${DBNAME};\
+    CREATE DATABASE ${DBNAME};" \
+  | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
+}
 # args: dbname password
 set_database()
 {
   local DBNAME=$1
   local DBPASS=$2
-  echo "Create Database ${DBNAME}"
-  echo "DROP DATABASE IF EXISTS ${DBNAME};\
-    CREATE DATABASE ${DBNAME};\
-    GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'localhost' \
+  echo "Config Database ${DBNAME}"
+  echo "GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'localhost' \
     IDENTIFIED BY '${DBPASS}';
   GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'%' \
     IDENTIFIED BY '${DBPASS}';" \
