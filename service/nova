@@ -1,0 +1,108 @@
+#!/bin/bash
+NOVA_CONF_FILE=/etc/nova/nova.conf
+
+help()
+{
+  echo "usage: $SCRIPT_NAME $SERVICE_NAME <init|config|start|stop|restart>"
+}
+
+do_init()
+{
+  init_database $SERVICE_NAME
+  do_config
+}
+
+do_service()
+{
+  sudo service nova-api $1
+  sudo service nova-cert $1
+  sudo service nova-consoleauth $1
+  sudo service nova-scheduler $1
+  sudo service nova-conductor $1
+  sudo service nova-novncproxy $1
+  sudo service nova-compute $1
+}
+
+do_config()
+{
+  set_database $SERVICE_NAME $SET_NOVA_DBPASS
+  source $ADMIN_ENV_FILE
+  delete_user
+  create_user
+  edit_conf
+  sudo su -s /bin/sh -c "nova-manage db sync" $SERVICE_NAME
+  do_service restart
+}
+
+edit_conf()
+{
+  #config NOVA_CONF_FILE
+  add_args_to_section $NOVA_CONF_FILE "\[DEFAULT\]" "rpc_backend" "rabbit_host" \
+    "rabbit_password" "my_ip" "vncserver_listen" "vncserver_proxyclient_address" "verbose" \
+    "vnc_enabled"
+  add_args_to_section $NOVA_CONF_FILE "\[database\]" "connection"
+  add_args_to_section $NOVA_CONF_FILE "\[keystone_authtoken\]" "auth_uri" \
+    "identity_uri" "admin_tenant_name" "admin_user" "admin_password"
+  add_args_to_section $NOVA_CONF_FILE "\[glance\]" "host"
+
+  set_conf_arg "connection" "connection = mysql://$SERVICE_NAME:$SET_NOVA_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT/$SERVICE_NAME" $NOVA_CONF_FILE
+
+  set_conf_arg "verbose" "verbose = True" $NOVA_CONF_FILE
+
+  set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL_PUBLIC}" $NOVA_CONF_FILE
+  set_conf_arg "identity_uri" "identity_uri = http://$SET_CONTROLLER:35357" $NOVA_CONF_FILE
+  set_conf_arg "admin_tenant_name" "admin_tenant_name = service" $NOVA_CONF_FILE
+  set_conf_arg "admin_user" "admin_user = $SERVICE_NAME" $NOVA_CONF_FILE
+  set_conf_arg "admin_password" "admin_password = $SET_NOVA_PASS" $NOVA_CONF_FILE
+
+  set_conf_arg "rpc_backend" "rpc_backend = rabbit" $NOVA_CONF_FILE
+  set_conf_arg "rabbit_host" "rabbit_host = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
+  set_conf_arg "rabbit_password" "rabbit_password = $SET_NOVA_PASS" $NOVA_CONF_FILE
+
+  set_conf_arg "my_ip" "my_ip = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
+
+  set_conf_arg "vnc_enabled" "vnc_enabled = True" $NOVA_CONF_FILE
+  set_conf_arg "vncserver_listen" "vncserver_listen = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
+  set_conf_arg "vncserver_proxyclient_address" "vncserver_proxyclient_address = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
+  set_conf_arg "novncproxy_base_url" "novncproxy_base_url = http://$SET_CONTROLLER_IP:6080/vnc_auto.html" $NOVA_CONF_FILE
+
+  set_conf_arg "host" "host = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
+
+  if [ $(egrep -c '(vmx|svm)' /proc/cpuinfo) -eq 0 ];then
+    add_args_to_section $NOVA_CONF_FILE "\[libvirt\]" "virt_type"
+    set_conf_arg "virt_type" "virt_type = qemu" $NOVA_CONF_FILE
+  fi
+}
+
+create_user()
+{
+  keystone user-create --name $SERVICE_NAME --pass $SET_NOVA_PASS
+  keystone user-role-add --user $SERVICE_NAME --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
+
+  keystone service-create --name $SERVICE_NAME --type compute \
+    --description "OpenStack Compute"
+  keystone endpoint-create \
+    --service-id $(keystone service-list | awk '/ compute / {print $2}') \
+    --publicurl http://$SET_CONTROLLER_IP:8774/v2/%\(tenant_id\)s \
+    --internalurl http://$SET_CONTROLLER_IP:8774/v2/%\(tenant_id\)s \
+    --adminurl http://$SET_CONTROLLER_IP:8774/v2/%\(tenant_id\)s \
+    --region regionOne
+}
+
+delete_user()
+{
+  keystone user-delete $SERVICE_NAME
+  keystone service-delete $SERVICE_NAME
+}
+
+if [ $# -lt 2 ]; then
+  help
+elif [ "init" = $2 ]; then
+  do_init
+elif [ "config" = $2 ]; then
+  do_config
+elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
+  do_service $2
+else
+  help
+fi
