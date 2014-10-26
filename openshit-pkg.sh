@@ -1,7 +1,7 @@
 #!/bin/bash
 DEPENDENCE_LIST=dependence-pack.list
 OPENSTACK_LIST=openstack-package.list
-SCRIPT_NAME=package.sh
+SCRIPT_NAME=openshit-pkg.sh
 
 do_checkfile()
 {

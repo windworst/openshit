@@ -1,6 +1,7 @@
 #!/bin/bash
-SCRIPT_NAME=config.sh
+SCRIPT_NAME=openshit-manage.sh
 CONFIG_FILE=openshit.conf
+SERVICE_PATH=service
 
 do_export()
 {
@@ -16,7 +17,7 @@ do_export()
 help()
 {
   echo "usage: "
-  for item in `ls config`;
+  for item in `ls -tr $SERVICE_PATH`;
   do
     echo "  " $SCRIPT_NAME $item
   done
@@ -24,9 +25,9 @@ help()
 
 if [ $# -le 0 ]; then
   help
-elif [ -e "config/"$1 ]; then
+elif [ -e "$SERVICE_PATH/"$1 ]; then
   do_export
-  source "config/"$1 $@
+  source "$SERVICE_PATH/"$1 $@
 else
   help
 fi
