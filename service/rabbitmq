@@ -1,8 +1,8 @@
 #!/bin/bash
-SUB_SCRIPT_NAME=rabbitmq
+
 help()
 {
-  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <config|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SERVICE_NAME <config|start|stop|restart>"
 }
 
 do_config()

@@ -1,14 +1,24 @@
 #!/bin/bash
 MYSQL_CONFIG=/etc/mysql/my.cnf
-SUB_SCRIPT_NAME=mysql
 
 help()
 {
-  echo "usage: $SCRIPT_NAME $SUB_SCRIPT_NAME <init|config|start|stop|restart>"
+  echo "usage: $SCRIPT_NAME $SERVICE_NAME <init|config|start|stop|restart>"
 }
 
 do_config()
 {
+  edit_conf
+  do_service restart
+}
+
+do_service()
+{
+  sudo /etc/init.d/mysql $1
+}
+
+edit_conf()
+{  
   add_args_to_section $MYSQL_CONFIG "\[mysqld\]" \
     "innodb_file_per_table" \
     "default-storage-engine" \
@@ -19,13 +29,6 @@ do_config()
   set_conf_arg "collation-server" "collation-server = utf8_general_ci" $MYSQL_CONFIG
   set_conf_arg "init-connect" "init-connect = 'SET NAMES utf8'" $MYSQL_CONFIG
   set_conf_arg "character-set-server" "character-set-server = utf8" $MYSQL_CONFIG
-
-  do_service restart
-}
-
-do_service()
-{
-  sudo /etc/init.d/mysql $1
 }
 
 if [ $# -lt 2 ]; then

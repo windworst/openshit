@@ -20,8 +20,7 @@ init_database()
 {
   local DBNAME=$1
   echo "Init Database ${DBNAME}"
-  echo "DROP DATABASE IF EXISTS ${DBNAME};\
-    CREATE DATABASE ${DBNAME};" \
+  echo "DROP DATABASE IF EXISTS ${DBNAME};" \
   | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
 }
 # args: dbname password
@@ -30,7 +29,8 @@ set_database()
   local DBNAME=$1
   local DBPASS=$2
   echo "Config Database ${DBNAME}"
-  echo "GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'localhost' \
+  echo "CREATE DATABASE IF NOT EXISTS ${DBNAME};
+  GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'localhost' \
     IDENTIFIED BY '${DBPASS}';
   GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'%' \
     IDENTIFIED BY '${DBPASS}';" \
@@ -47,11 +47,11 @@ add_args_to_section()
     return
   fi
 
-  grep -q $SECTION $FILE 2>/dev/null
+  sudo grep -q $SECTION $FILE 2>/dev/null
   if [ $? -eq 0 ]; then
     while (($count<=$#));
     do
-      grep -q ${!count} $FILE 2>/dev/null
+      sudo grep -q ${!count} $FILE 2>/dev/null
       if [ $? -ne 0 ]; then
         sudo sed -i "s/${SECTION}/${SECTION}\n${!count}/g" $FILE
       fi
@@ -61,7 +61,7 @@ add_args_to_section()
     sudo sh -c "echo ${SECTION} >> ${FILE}"
     while (($count<=$#));
     do
-      grep -q ${!count} $FILE 2>/dev/null
+      sudo grep -q ${!count} $FILE 2>/dev/null
       if [ $? -ne 0 ]; then
         sudo sh -c "echo ${!count} >> ${FILE}"
       fi
@@ -93,6 +93,7 @@ if [ $# -le 0 ]; then
   help
 elif [ -e "${SERVICE_PATH}/"$1 ]; then
   do_export
+  SERVICE_NAME=$1
   source "${SERVICE_PATH}/"$1 $@
 else
   help
