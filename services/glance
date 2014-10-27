@@ -36,7 +36,7 @@ edit_conf()
   #config $GLANCE_API_CONFIG_FILE
   add_args_to_section $GLANCE_API_CONF_FILE "\[keystone_authtoken\]" "auth_uri"
 
-  set_conf_arg "connection" "connection = mysql://glance:$SET_GLANCE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT/glance" $GLANCE_API_CONF_FILE
+  set_conf_arg "connection" "connection = mysql://$SERVICE_NAME:$SET_GLANCE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT/$SERVICE_NAME" $GLANCE_API_CONF_FILE
   set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL}" $GLANCE_API_CONF_FILE
   set_conf_arg "admin_tenant_name" "admin_tenant_name = ${SET_KEYSTONE_ADMIN_TENANT}" $GLANCE_API_CONF_FILE
   set_conf_arg "admin_user" "admin_user = ${SET_KEYSTONE_ADMIN}" $GLANCE_API_CONF_FILE

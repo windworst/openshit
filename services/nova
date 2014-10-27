@@ -58,7 +58,7 @@ edit_conf()
 
   set_conf_arg "rpc_backend" "rpc_backend = rabbit" $NOVA_CONF_FILE
   set_conf_arg "rabbit_host" "rabbit_host = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
-  set_conf_arg "rabbit_password" "rabbit_password = $SET_NOVA_PASS" $NOVA_CONF_FILE
+  set_conf_arg "rabbit_password" "rabbit_password = $SET_RABBITMQ_PASS" $NOVA_CONF_FILE
 
   set_conf_arg "my_ip" "my_ip = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
 

@@ -42,7 +42,7 @@ config()
 edit_conf()
 {
   set_conf_arg "admin_token" "admin_token=${SET_OS_SERVICE_TOKEN}" $KEYSTONE_CONF_FILE
-  set_conf_arg "connection" "connection=mysql://keystone:$SET_KEYSTONE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT\/keystone" $KEYSTONE_CONF_FILE
+  set_conf_arg "connection" "connection=mysql://$SERVICE_NAME:$SET_KEYSTONE_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT/$SERVICE_NAME" $KEYSTONE_CONF_FILE
   set_conf_arg "verbose" "verbose=True" $KEYSTONE_CONF_FILE
 }
 

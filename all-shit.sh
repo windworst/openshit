@@ -18,7 +18,7 @@ run_openshit()
   for SERVICE in $SERVICE_LIST;
   do
     echo "${ACTION}: ${SERVICE}"
-    bash -c "bash ${MAIN_SCRIPT} $SERVICE $ACTION"
+    source $MAIN_SCRIPT $SERVICE $ACTION
   done
 }
 
