@@ -5,7 +5,7 @@ SERVICE_PATH=services
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
 
-do_export()
+export()
 {
   if [ ! -e $CONFIG_FILE ]; then
     echo "$CONFIG_FILE not exsit"
@@ -81,21 +81,21 @@ set_conf_arg()
 }
 
 # args : package-list
-do_install()
+install()
 {
   echo "Installing: $@"
   sudo apt-get -y install $@
 }
 
 # args : package-list
-do_download()
+download()
 {
   echo "Downloading: $@"
   sudo apt-get -y -d install $@
 }
 
 # args : package-list
-do_uninstall()
+uninstall()
 {
   echo "Uninstalling: $@"
   sudo apt-get -y --purge remove $@
@@ -113,7 +113,7 @@ help()
 if [ $# -le 0 ]; then
   help
 elif [ -e "${SERVICE_PATH}/"$1 ]; then
-  do_export
+  export
   SERVICE_NAME=$1
   source "${SERVICE_PATH}/"$1 $@
 else

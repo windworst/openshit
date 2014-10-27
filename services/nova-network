@@ -7,7 +7,7 @@ help()
   echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|config|start|stop|restart>"
 }
 
-do_service()
+service()
 {
   sudo service nova-api $1
   sudo service nova-scheduler $1
@@ -15,10 +15,10 @@ do_service()
   sudo service nova-network $1
 }
 
-do_config()
+config()
 {
   edit_conf
-  do_service restart
+  service restart
 }
 
 edit_conf()
@@ -46,17 +46,17 @@ edit_conf()
 if [ $# -lt 2 ]; then
   help
 elif [ "init" = $2 ]; then
-  do_init
+  init
 elif [ "config" = $2 ]; then
-  do_config
+  config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  do_service $2
+  service $2
 elif [ "install" = $2 ]; then
-  do_install $PACKAGES
+  install $PACKAGES
 elif [ "uninstall" = $2 ]; then
-  do_uninstall $PACKAGES
+  uninstall $PACKAGES
 elif [ "download" = $2 ]; then
-  do_download $PACKAGES
+  download $PACKAGES
 else
   help
 fi

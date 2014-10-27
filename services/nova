@@ -7,13 +7,13 @@ help()
   echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|clean|config|start|stop|restart>"
 }
 
-do_clean()
+clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-do_service()
+service()
 {
   sudo service nova-api $1
   sudo service nova-cert $1
@@ -24,7 +24,7 @@ do_service()
   sudo service nova-compute $1
 }
 
-do_config()
+config()
 {
   set_database $SERVICE_NAME $SET_NOVA_DBPASS
   source $ADMIN_ENV_FILE
@@ -32,7 +32,7 @@ do_config()
   create_user
   edit_conf
   sudo su -s /bin/sh -c "nova-manage db sync" $SERVICE_NAME
-  do_service restart
+  service restart
 }
 
 edit_conf()
@@ -99,17 +99,17 @@ delete_user()
 if [ $# -lt 2 ]; then
   help
 elif [ "clean" = $2 ]; then
-  do_clean
+  clean
 elif [ "config" = $2 ]; then
-  do_config
+  config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  do_service $2
+  service $2
 elif [ "install" = $2 ]; then
-  do_install $PACKAGES
+  install $PACKAGES
 elif [ "uninstall" = $2 ]; then
-  do_uninstall $PACKAGES
+  uninstall $PACKAGES
 elif [ "download" = $2 ]; then
-  do_download $PACKAGES
+  download $PACKAGES
 else
   help
 fi
