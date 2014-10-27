@@ -5,8 +5,9 @@ PREINSTALL_SCRIPT=pre-install.sh
 INSTALL_LIST="mysql rabbitmq keystone glance nova nova-network cinder dashboard"
 SERVICE_LIST="mysql rabbitmq keystone glance nova nova-network cinder"
 REMOVE_LIST="dashboard cinder nova-network nova glance keystone"
+CLEAN_LIST="cinder nova glance keystone"
 REMOVE_DEPENDENCE_LIST="rabbitmq mysql"
-CONFIG_LIST="keystone glance nova nova-network cinder"
+CONFIG_LIST="mysql keystone glance nova nova-network cinder"
 
 # args: service-list
 # env: ACTION
@@ -24,7 +25,7 @@ run_openshit()
 
 help()
 {
-  echo "usage: ${SCRIPT_NAME} <start|stop|restart|config|install|download|uninstall>"
+  echo "usage: ${SCRIPT_NAME} <start|stop|restart|config|clean|install|download|uninstall>"
 }
 
 if [ $# -lt 1 ]; then
@@ -36,6 +37,8 @@ if [ $ACTION = "start" -o $ACTION = "stop" -o $ACTION = "restart" ]; then
   run_openshit $SERVICE_LIST
 elif [ $ACTION = "config" ]; then
   run_openshit $CONFIG_LIST
+elif [ $ACTION = "clean" ]; then
+  run_openshit $CLEAN_LIST
 elif [ $ACTION = "install" -o $ACTION = "download" ]; then
   read -p "Do you need configure your soft-source before install/download? [Y/n]" ret
   if [ -z $ret -o 'Y' = $ret -o 'y' = $ret ]; then

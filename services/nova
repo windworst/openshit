@@ -1,5 +1,6 @@
 #!/bin/bash
 NOVA_CONF_FILE=/etc/nova/nova.conf
+NOVA_COMPUTE_FILE=/etc/nova/nova-compute.conf
 PACKAGES="nova-api nova-cert nova-conductor nova-consoleauth nova-novncproxy nova-scheduler python-novaclient nova-compute"
 
 help()
@@ -51,7 +52,7 @@ edit_conf()
   set_conf_arg "verbose" "verbose = True" $NOVA_CONF_FILE
 
   set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL_PUBLIC}" $NOVA_CONF_FILE
-  set_conf_arg "identity_uri" "identity_uri = http://$SET_CONTROLLER:35357" $NOVA_CONF_FILE
+  set_conf_arg "identity_uri" "identity_uri = http://$SET_CONTROLLER_IP:35357" $NOVA_CONF_FILE
   set_conf_arg "admin_tenant_name" "admin_tenant_name = service" $NOVA_CONF_FILE
   set_conf_arg "admin_user" "admin_user = $SERVICE_NAME" $NOVA_CONF_FILE
   set_conf_arg "admin_password" "admin_password = $SET_NOVA_PASS" $NOVA_CONF_FILE
@@ -70,8 +71,8 @@ edit_conf()
   set_conf_arg "host" "host = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
 
   if [ $(egrep -c '(vmx|svm)' /proc/cpuinfo) -eq 0 ];then
-    add_args_to_section $NOVA_CONF_FILE "\[libvirt\]" "virt_type"
-    set_conf_arg "virt_type" "virt_type = qemu" $NOVA_CONF_FILE
+    add_args_to_section $NOVA_COMPUTE_FILE "\[libvirt\]" "virt_type"
+    set_conf_arg "virt_type" "virt_type = qemu" $NOVA_COMPUTE_FILE
   fi
 }
 

@@ -46,7 +46,7 @@ edit_conf()
   set_conf_arg "verbose" "verbose = True" $CINDER_CONF_FILE
 
   set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL_PUBLIC}" $CINDER_CONF_FILE
-  set_conf_arg "identity_uri" "identity_uri = http://$SET_CONTROLLER:35357" $CINDER_CONF_FILE
+  set_conf_arg "identity_uri" "identity_uri = http://$SET_CONTROLLER_IP:35357" $CINDER_CONF_FILE
   set_conf_arg "admin_tenant_name" "admin_tenant_name = service" $CINDER_CONF_FILE
   set_conf_arg "admin_user" "admin_user = $SERVICE_NAME" $CINDER_CONF_FILE
   set_conf_arg "admin_password" "admin_password = $SET_CINDER_PASS" $CINDER_CONF_FILE

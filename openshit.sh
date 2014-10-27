@@ -5,7 +5,7 @@ SERVICE_PATH=services
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
 
-export()
+export_conf()
 {
   if [ ! -e $CONFIG_FILE ]; then
     echo "$CONFIG_FILE not exsit"
@@ -53,7 +53,7 @@ add_args_to_section()
     do
       sudo grep -q ${!count} $FILE 2>/dev/null
       if [ $? -ne 0 ]; then
-        sudo sed -i "s/${SECTION}/${SECTION}\n${!count}/g" $FILE
+        sudo sed -i "s/^[#, ]*${SECTION}.*/${SECTION}\n${!count}/g" $FILE
       fi
       let ++count
     done
@@ -113,7 +113,7 @@ help()
 if [ $# -le 0 ]; then
   help
 elif [ -e "${SERVICE_PATH}/"$1 ]; then
-  export
+  export_conf
   SERVICE_NAME=$1
   source "${SERVICE_PATH}/"$1 $@
 else

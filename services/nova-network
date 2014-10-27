@@ -40,7 +40,7 @@ edit_conf()
   set_conf_arg "force_dhcp_release" "force_dhcp_release = True" $NOVA_CONF_FILE
   set_conf_arg "flat_network_bridge" "flat_network_bridge = br100" $NOVA_CONF_FILE
   set_conf_arg "flat_interface" "flat_interface = ${SET_INTERFACE_NAME}" $NOVA_CONF_FILE
-  set_conf_arg "public_interface" "public_interface = ${INTERFACE_NAME}" $NOVA_CONF_FILE
+  set_conf_arg "public_interface" "public_interface = ${SET_INTERFACE_NAME}" $NOVA_CONF_FILE
 }
 
 if [ $# -lt 2 ]; then

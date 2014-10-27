@@ -19,7 +19,7 @@ service()
 }
 
 edit_conf()
-{  
+{
   add_args_to_section $MYSQL_CONFIG "\[mysqld\]" \
     "innodb_file_per_table" \
     "default-storage-engine" \
