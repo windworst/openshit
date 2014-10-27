@@ -47,11 +47,11 @@ add_args_to_section()
     return
   fi
 
-  sudo grep -q $SECTION $FILE 2>/dev/null
+  sudo grep -q "^$SECTION" $FILE 2>/dev/null
   if [ $? -eq 0 ]; then
     while (($count<=$#));
     do
-      sudo grep -q ${!count} $FILE 2>/dev/null
+      sudo grep -q "^[#, ]*${!count}.*" $FILE 2>/dev/null
       if [ $? -ne 0 ]; then
         sudo sed -i "s/^[#, ]*${SECTION}.*/${SECTION}\n${!count}/g" $FILE
       fi
@@ -61,7 +61,7 @@ add_args_to_section()
     sudo sh -c "echo ${SECTION} >> ${FILE}"
     while (($count<=$#));
     do
-      sudo grep -q ${!count} $FILE 2>/dev/null
+      sudo grep -q "^[#, ]*${!count}.*" $FILE 2>/dev/null
       if [ $? -ne 0 ]; then
         sudo sh -c "echo ${!count} >> ${FILE}"
       fi
