@@ -7,7 +7,7 @@ SERVICE_LIST="mysql rabbitmq keystone glance nova nova-network cinder"
 REMOVE_LIST="dashboard cinder nova-network nova glance keystone"
 CLEAN_LIST="cinder nova glance keystone"
 REMOVE_DEPENDENCE_LIST="rabbitmq mysql"
-CONFIG_LIST="mysql keystone glance nova nova-network cinder"
+CONFIG_LIST="mysql rabbitmq keystone glance nova nova-network cinder"
 
 # args: service-list
 # env: ACTION
