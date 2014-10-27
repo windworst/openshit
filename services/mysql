@@ -25,7 +25,9 @@ edit_conf()
     "default-storage-engine" \
     "collation-server" \
     "init-connect" \
-    "character-set-server"
+    "character-set-server" \
+    "bind-address"
+  set_conf_arg "bind-address" "bind-address = 0.0.0.0" $MYSQL_CONFIG
   set_conf_arg "default-storage-engine" "default-storage-engine = InnoDB" $MYSQL_CONFIG
   set_conf_arg "collation-server" "collation-server = utf8_general_ci" $MYSQL_CONFIG
   set_conf_arg "init-connect" "init-connect = 'SET NAMES utf8'" $MYSQL_CONFIG
