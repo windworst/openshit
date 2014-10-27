@@ -44,7 +44,7 @@ elif [ $ACTION = "uninstall" ]; then
   echo "There some dependence package:"
   echo "    ${REMOVE_DEPENDENCE_LIST}"
   read -p "Do you want to remove? [y/N]" ret
-  if [ 'Y' = ret -o 'y' = ret ]; then
+  if [ 'Y' = $ret -o 'y' = $ret ]; then
     run_openshit $REMOVE_DEPENDENCE_LIST
   fi
 else
