@@ -1,32 +1,33 @@
-OpenShit, OpenStack HITter
+OpenShit, OpenStack HITter (THIS IS A NEW SHIT!)
 
-Version 0.0.1
+An Open Stack Services Manager
 
-  support ubuntu 14.04 (server/desktop)
+Version 0.1
 
-  Auto install package (base on apt-get), configure components.
-
-    Dependence:
-      mysql, rabbitmq, ntp
-
-    Components:
-      KeyStone,Glance,Nova,Cinder
-
+support ubuntu 14.04 (server/desktop)
 
 Usage:
 
-  Configure apt-get source for first run, execute:
+  Manage single service, use:
 
-    sh pre_install.sh
+    bash openshit.sh
 
-  Download package (no install)
+  it will show you a list of services, and use:
 
-    sh package.sh download
+    bash openshit.sh <Service Name>
 
-  Install package
+  to manage service
 
-    sh package.sh install
+  Operating all services by:
 
-  Uninstall
+    bash all-shit.sh
 
-    sh package.sh uninstall
+  Like:
+
+    bash all-shit.sh install
+
+    bash all-shit.sh config
+
+    bash all-shit.sh restart
+
+    bash all-shit.sh uninstall
