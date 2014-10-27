@@ -37,7 +37,10 @@ if [ $ACTION = "start" -o $ACTION = "stop" -o $ACTION = "restart" ]; then
 elif [ $ACTION = "config" ]; then
   run_openshit $CONFIG_LIST
 elif [ $ACTION = "install" -o $ACTION = "download" ]; then
-  bash $PREINSTALL_SCRIPT
+  read -p "Do you need configure your soft-source before install/download? [Y/n]" ret
+  if [ -z $ret -o 'Y' = $ret -o 'y' = $ret ]; then
+    bash $PREINSTALL_SCRIPT
+  fi
   run_openshit $INSTALL_LIST
 elif [ $ACTION = "uninstall" ]; then
   run_openshit $REMOVE_LIST
