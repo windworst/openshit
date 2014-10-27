@@ -49,7 +49,7 @@ edit_conf()
 create_user()
 {
   keystone tenant-create --name $SET_KEYSTONE_ADMIN_TENANT --description "${SET_KEYSTONE_ADMIN} Tenant"
-  keystone user-create --name $SET_KEYSTONE_ADMIN --pass $SET_KEYSTONE_ADMIN_PASS --email $SET_YOUR_EMAIL
+  keystone user-create --name $SET_KEYSTONE_ADMIN --pass $SET_KEYSTONE_ADMIN_PASS
   keystone role-create --name $SET_KEYSTONE_ADMIN_ROLE
   keystone user-role-add --tenant $SET_KEYSTONE_ADMIN_TENANT --user $SET_KEYSTONE_ADMIN --role $SET_KEYSTONE_ADMIN_ROLE
   keystone role-create --name _member_
