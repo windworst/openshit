@@ -1,9 +1,11 @@
 #!/bin/bash
 SCRIPT_NAME=openshit.sh
 CONFIG_FILE=setting.conf
+SERVICE_FILE=service.conf
 SERVICE_PATH=services
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
+PRE_INSTALL_FILE=pre-install.sh
 
 # args: FILE_NAME
 load_file()
@@ -91,13 +93,29 @@ set_conf_arg()
   sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
 }
 
+call_pre_install()
+{
+  if  [ -z $NEED_PRE_INSTALL ]; then
+    read -p "Do you need configure your soft-source before install/download? [Y/n]" ret
+    if [ -z $ret -o 'Y' = $ret -o 'y' = $ret ]; then
+      source $PREINSTALL_FILE
+    fi
+    NEED_PRE_INSTALL="n"
+  elif [ 'y' = $NEED_PRE_INSTALL -o 'Y' = $NEED_PRE_INSTALL ]; then
+    source $PRE_INSTALL_FILE
+    NEED_PRE_INSTALL="n"
+  fi
+}
+
 unset PACKAGE_LIST
 # env : PACKAGE_LIST ACTION
 func_package()
 {
   if [ "install" = $1 ]; then
+    call_pre_install
     sudo apt-get -y install $PACKAGE_LIST
   elif [ "download" = $1 ]; then
+    call_pre_install
     sudo apt-get -y -d install $PACKAGE_LIST
   elif [ "uninstall" = $1 ]; then
     sudo apt-get -y --purge remove $PACKAGE_LIST
@@ -146,10 +164,12 @@ help()
   done
 }
 
-# env: SERVICE_NAME, ACTION
+# args: SERVICE_NAME, ACTION
 invoke_service()
 {
-  load_file "${SERVICE_PATH}/${SERVICE_NAME}"
+  unset PACKAGE_LIST
+  unset SERVICE_LIST
+
   if [ -z "$ACTION" ]; then
     echo "$SERVICE_NAME Support actions:"
     echo -n "  "
@@ -173,13 +193,27 @@ invoke_service()
   fi
 }
 
+# args: service-list
+# env: ACTION
+invoke_service_list()
+{
+  for SERVICE in $@;
+  do
+    echo "${ACTION}: ${SERVICE}"
+    source $MAIN_SCRIPT $SERVICE $ACTION
+  done
+}
+
+SERVICE_NAME=$1
+ACTION=$2
+
 if [ $# -le 0 ]; then
   help
-elif [ -e "${SERVICE_PATH}/"$1 ]; then
+elif [ -e "${SERVICE_PATH}/${SERVICE_NAME}" ]; then
   load_file $CONFIG_FILE
-  SERVICE_NAME=$1
-  ACTION=$2
-  invoke_service
+  load_file $SERVICE_FILE
+  load_file "${SERVICE_PATH}/${SERVICE_NAME}"
+  invoke_service $@
 else
   help
 fi

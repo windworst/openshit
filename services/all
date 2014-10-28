@@ -1,0 +1,23 @@
+#!/bin/bash
+SERVICE_LIST="all"
+PACKAGE_LIST="all"
+
+func_service()
+{
+  invoke_service_list $SERVICES
+}
+
+func_package()
+{
+  invoke_service_list $SERVICES $COMPONENTS
+}
+
+func_config()
+{
+  invoke_service_list $SERVICES
+}
+
+func_clean()
+{
+  invoke_service_list $SERVICES_HAS_DATABASE
+}
