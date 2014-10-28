@@ -128,7 +128,7 @@ func_service()
 {
   for item in $SERVICE_LIST;
   do
-    echo "[$item $ACTION]"
+    echo "${ACTION}: ${item}"
     sudo service $item $ACTION
   done
 }
@@ -170,6 +170,9 @@ invoke_service()
   unset PACKAGE_LIST
   unset SERVICE_LIST
 
+  local SERVICE_NAME=$1
+  local ACTION=$2
+
   if [ -z "$ACTION" ]; then
     echo "$SERVICE_NAME Support actions:"
     echo -n "  "
@@ -181,7 +184,7 @@ invoke_service()
     fi
     echo_usable_action "config clean"
   fi
-  echo "[${SERVICE_NAME} ${ACTION}]"
+  echo "[${ACTION}: ${SERVICE_NAME}]"
   if [ ! -z "$SERVICE_LIST" ] && [ "start" = $ACTION -o "stop" = $ACTION -o "restart" = $ACTION  ]; then
     func_service $ACTION
   elif [ ! -z "$PACKAGE_LIST" ] && [ "install" = $ACTION -o "uninstall" = $ACTION -o "download" = $ACTION  ]; then
@@ -193,17 +196,6 @@ invoke_service()
   fi
 }
 
-# args: service-list
-# env: ACTION
-invoke_service_list()
-{
-  for SERVICE in $@;
-  do
-    echo "${ACTION}: ${SERVICE}"
-    source $MAIN_SCRIPT $SERVICE $ACTION
-  done
-}
-
 SERVICE_NAME=$1
 ACTION=$2
 
@@ -213,7 +205,7 @@ elif [ -e "${SERVICE_PATH}/${SERVICE_NAME}" ]; then
   load_file $CONFIG_FILE
   load_file $SERVICE_FILE
   load_file "${SERVICE_PATH}/${SERVICE_NAME}"
-  invoke_service $@
+  invoke_service $SERVICE_NAME $ACTION
 else
   help
 fi

@@ -2,6 +2,17 @@
 SERVICE_LIST="all"
 PACKAGE_LIST="all"
 
+# args: service-list
+# env: ACTION
+invoke_service_list()
+{
+  for item in $@;
+  do
+    echo "${ACTION}: ${item}"
+    invoke_service $item $ACTION
+  done
+}
+
 func_service()
 {
   invoke_service_list $SERVICES
