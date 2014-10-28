@@ -7,13 +7,13 @@ help()
   echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|clean|config|start|stop|restart>"
 }
 
-clean()
+run_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-service()
+run_service()
 {
   sudo service cinder-scheduler $1
   sudo service cinder-api $1
@@ -21,15 +21,14 @@ service()
   sudo service tgt $1
 }
 
-config()
+run_config()
 {
   set_database $SERVICE_NAME $SET_CINDER_DBPASS
-  source $ADMIN_ENV_FILE
   delete_user
   create_user
   edit_conf
   sudo su -s /bin/sh -c "cinder-manage db sync" $SERVICE_NAME
-  service restart
+  run_service restart
 }
 
 edit_conf()
@@ -61,6 +60,7 @@ edit_conf()
 
 create_user()
 {
+  load_admin_env
   keystone user-create --name $SERVICE_NAME --pass $SET_CINDER_PASS
   keystone user-role-add --user $SERVICE_NAME --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
 
@@ -76,6 +76,7 @@ create_user()
 
 delete_user()
 {
+  load_admin_env
   keystone user-delete $SERVICE_NAME
   keystone service-delete $SERVICE_NAME
 }
@@ -83,17 +84,17 @@ delete_user()
 if [ $# -lt 2 ]; then
   help
 elif [ "clean" = $2 ]; then
-  clean
+  run_clean
 elif [ "config" = $2 ]; then
-  config
+  run_config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  service $2
+  run_service $2
 elif [  "install" = $2 ]; then
-  install $PACKAGES
+  run_install $PACKAGES
 elif [  "uninstall" = $2 ]; then
-  uninstall $PACKAGES
+  run_uninstall $PACKAGES
 elif [  "download" = $2 ]; then
-  download $PACKAGES
+  run_download $PACKAGES
 else
   help
 fi

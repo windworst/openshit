@@ -9,11 +9,11 @@ help()
 if [ $# -lt 2 ]; then
   help
 elif [  "install" = $2 ]; then
-  install $PACKAGES
+  run_install $PACKAGES
 elif [  "uninstall" = $2 ]; then
-  uninstall $PACKAGES
+  run_uninstall $PACKAGES
 elif [  "download" = $2 ]; then
-  download $PACKAGES
+  run_download $PACKAGES
 else
   help
 fi

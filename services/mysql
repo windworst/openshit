@@ -7,13 +7,13 @@ help()
   echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|config|start|stop|restart>"
 }
 
-config()
+run_config()
 {
   edit_conf
-  service restart
+  run_service restart
 }
 
-service()
+run_service()
 {
   sudo /etc/init.d/mysql $1
 }
@@ -37,15 +37,15 @@ edit_conf()
 if [ $# -lt 2 ]; then
   help
 elif [ "config" = $2 ]; then
-  config
+  run_config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  service $2
+  run_service $2
 elif [  "install" = $2 ]; then
-  install $PACKAGES
+  run_install $PACKAGES
 elif [  "uninstall" = $2 ]; then
-  uninstall $PACKAGES
+  run_uninstall $PACKAGES
 elif [  "download" = $2 ]; then
-  download $PACKAGES
+  run_download $PACKAGES
 else
   help
 fi

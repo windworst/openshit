@@ -6,13 +6,13 @@ help()
   echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|config|start|stop|restart>"
 }
 
-config()
+run_config()
 {
   echo "SET_RABBITMQ_PASS=$SET_RABBITMQ_PASS"
   sudo rabbitmqctl change_password guest $SET_RABBITMQ_PASS
 }
 
-service()
+run_service()
 {
   sudo service rabbitmq-server $1
 }
@@ -20,15 +20,15 @@ service()
 if [ $# -lt 2 ]; then
   help
 elif [ "config" = $2 ]; then
-  config
+  run_config
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  service $2
+  run_service $2
 elif [ "install" = $2 ]; then
-  install $PACKAGES
+  run_install $PACKAGES
 elif [ "uninstall" = $2 ]; then
-  uninstall $PACKAGES
+  run_uninstall $PACKAGES
 elif [ "download" = $2 ]; then
-  download $PACKAGES
+  run_download $PACKAGES
 else
   help
 fi

@@ -7,13 +7,13 @@ help()
   echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|clean|clean-expired|config|start|stop|restart>"
 }
 
-clean()
+run_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-service()
+run_service()
 {
   sudo service keystone $1
 }
@@ -25,18 +25,17 @@ clean_expired_token()
   >> /var/spool/cron/crontabs/keystone
 }
 
-config()
+run_config()
 {
   set_database $SERVICE_NAME $SET_KEYSTONE_DBPASS
   edit_conf
   sudo su -s /bin/sh -c "keystone-manage db_sync" $SERVICE_NAME
-  service restart
+  run_service restart
   echo "Waiting for service keystone start..."
   sleep 5
-  source $SERVICE_ENV_FILE
   delete_user
   create_user
-  source $ADMIN_ENV_FILE
+  load_admin_env
 }
 
 edit_conf()
@@ -48,6 +47,7 @@ edit_conf()
 
 create_user()
 {
+  load_service_env
   keystone tenant-create --name $SET_KEYSTONE_ADMIN_TENANT --description "${SET_KEYSTONE_ADMIN} Tenant"
   keystone user-create --name $SET_KEYSTONE_ADMIN --pass $SET_KEYSTONE_ADMIN_PASS
   keystone role-create --name $SET_KEYSTONE_ADMIN_ROLE
@@ -67,6 +67,7 @@ create_user()
 
 delete_user()
 {
+  load_service_env
   keystone user-delete $SET_KEYSTONE_ADMIN
   keystone service-delete $SERVICE_NAME
   keystone tenant-delete $SET_KEYSTONE_ADMIN_TENANT
@@ -78,19 +79,19 @@ delete_user()
 if [ $# -lt 2 ]; then
   help
 elif [ "clean" = $2 ]; then
-  clean
+  run_clean
 elif [ "config" = $2 ]; then
-  config
+  run_config
 elif [ "clean-expired" = $2 ]; then
   clean_expired_token
 elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  service $2
+  run_service $2
 elif [ "install" = $2 ]; then
-  install $PACKAGES
+  run_install $PACKAGES
 elif [ "uninstall" = $2 ]; then
-  uninstall $PACKAGES
+  run_uninstall $PACKAGES
 elif [ "download" = $2 ]; then
-  download $PACKAGES
+  run_download $PACKAGES
 else
   help
 fi

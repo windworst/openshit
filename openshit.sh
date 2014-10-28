@@ -5,14 +5,30 @@ SERVICE_PATH=services
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
 
-export_conf()
+# args: FILE_NAME
+load_file()
 {
-  if [ ! -e $CONFIG_FILE ]; then
-    echo "$CONFIG_FILE not exsit"
+  local FILE_NAME=$1
+  if [ ! -e $FILE_NAME ]; then
+    echo "$FILE_NAME not exsit"
     exit 1
   fi
+  source $FILE_NAME
+}
 
-  source $CONFIG_FILE
+load_conf()
+{
+ load_file $CONFIG_FILE
+}
+
+load_admin_env()
+{
+  load_file $ADMIN_ENV_FILE
+}
+
+load_service_env()
+{
+  load_file $SERVICE_ENV_FILE
 }
 
 # args: dbname
@@ -81,21 +97,21 @@ set_conf_arg()
 }
 
 # args : package-list
-install()
+run_install()
 {
   echo "Installing: $@"
   sudo apt-get -y install $@
 }
 
 # args : package-list
-download()
+run_download()
 {
   echo "Downloading: $@"
   sudo apt-get -y -d install $@
 }
 
 # args : package-list
-uninstall()
+run_uninstall()
 {
   echo "Uninstalling: $@"
   sudo apt-get -y --purge remove $@
@@ -113,7 +129,7 @@ help()
 if [ $# -le 0 ]; then
   help
 elif [ -e "${SERVICE_PATH}/"$1 ]; then
-  export_conf
+  load_conf
   SERVICE_NAME=$1
   source "${SERVICE_PATH}/"$1 $@
 else
