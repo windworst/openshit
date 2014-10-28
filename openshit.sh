@@ -95,41 +95,43 @@ set_conf_arg()
 
 call_pre_install()
 {
+  export NEED_PRE_INSTALL
   if  [ -z $NEED_PRE_INSTALL ]; then
-    read -p "Do you need configure your soft-source before install/download? [Y/n]" ret
-    if [ -z $ret -o 'Y' = $ret -o 'y' = $ret ]; then
-      source $PREINSTALL_FILE
-    fi
-    NEED_PRE_INSTALL="n"
-  elif [ 'y' = $NEED_PRE_INSTALL -o 'Y' = $NEED_PRE_INSTALL ]; then
+    read -p "Do you need configure your soft-source by $PRE_INSTALL_FILE [Y/n]" NEED_PRE_INSTALL
+  fi
+  if [ 'y' = $NEED_PRE_INSTALL -o 'Y' = $NEED_PRE_INSTALL ]; then
     source $PRE_INSTALL_FILE
-    NEED_PRE_INSTALL="n"
   fi
+  NEED_PRE_INSTALL=n
 }
 
-unset PACKAGE_LIST
-# env : PACKAGE_LIST ACTION
-func_package()
+# env : SET_PACKAGE_LIST 
+func_install()
 {
-  if [ "install" = $1 ]; then
-    call_pre_install
-    sudo apt-get -y install $PACKAGE_LIST
-  elif [ "download" = $1 ]; then
-    call_pre_install
-    sudo apt-get -y -d install $PACKAGE_LIST
-  elif [ "uninstall" = $1 ]; then
-    sudo apt-get -y --purge remove $PACKAGE_LIST
-  fi
+  call_pre_install
+  sudo apt-get -y install $SET_PACKAGE_LIST
 }
 
-unset SERVICE_LIST
-# env: SERVICE_LIST ACTION
+func_download()
+{
+  call_pre_install
+  sudo apt-get -y -d install $PACKAGE_LIST
+}
+
+func_uninstall()
+{
+  sudo apt-get -y --purge remove $PACKAGE_LIST
+  sudo apt-get autoremove
+}
+
+# env: SET_SERVICE_LIST
+# args: ACTION
 func_service()
 {
-  for item in $SERVICE_LIST;
+  for item in $SET_SERVICE_LIST;
   do
-    echo "${ACTION}: ${item}"
-    sudo service $item $ACTION
+    echo "$1: ${item}"
+    sudo service $item $1
   done
 }
 
@@ -158,7 +160,7 @@ echo_usable_action()
 help()
 {
   echo "usage: "
-  for item in `ls -tr $SERVICE_PATH`;
+  for item in `ls $SERVICE_PATH`;
   do
     echo "  " $SCRIPT_NAME $item
   done
@@ -167,45 +169,45 @@ help()
 # args: SERVICE_NAME, ACTION
 invoke_service()
 {
+  SERVICE_NAME=$1
+  ACTION=$2
   unset PACKAGE_LIST
   unset SERVICE_LIST
-
-  local SERVICE_NAME=$1
-  local ACTION=$2
-
+  load_file "${SERVICE_PATH}/$SERVICE_NAME"
+  SET_PACKAGE_LIST=$PACKAGE_LIST
+  SET_SERVICE_LIST=$SERVICE_LIST
   if [ -z "$ACTION" ]; then
     echo "$SERVICE_NAME Support actions:"
     echo -n "  "
     if [ ! -z "$SERVICE_LIST" ]; then
       echo -n "start stop restart "
     fi
-    if [ ! -z "$PACKAGE_LIST" ]; then
-      echo -n "install download uninstall "
-    fi
-    echo_usable_action "config clean"
+    echo_usable_action "config clean install download uninstall"
+    echo " "
+    return
   fi
-  echo "[${ACTION}: ${SERVICE_NAME}]"
-  if [ ! -z "$SERVICE_LIST" ] && [ "start" = $ACTION -o "stop" = $ACTION -o "restart" = $ACTION  ]; then
-    func_service $ACTION
-  elif [ ! -z "$PACKAGE_LIST" ] && [ "install" = $ACTION -o "uninstall" = $ACTION -o "download" = $ACTION  ]; then
-    func_package $ACTION
-  elif is_usable $ACTION; then
+  echo "${ACTION}: ${SERVICE_NAME}"
+  if [ ! -z "$SET_SERVICE_LIST" ] && [ "start" = $ACTION -o "stop" = $ACTION -o "restart" = $ACTION  ]; then
+    if is_usable "$INVOKE$SERVICE_NAME"_service; then
+      "$INVOKE$SERVICE_NAME"_service $ACTION
+    else
+      func_service $ACTION
+    fi
+  elif is_usable "$SERVICE_NAME"_"$ACTION"; then
+    $INVOKE$SERVICE_NAME"_"$ACTION
+  elif is_usable "$ACTION"; then
     $INVOKE$ACTION
   else
-    echo "$SERVICE_NAME: $ACTION Not Implement"
+    echo "$SERVICE_NAME: '$ACTION' Not Implement"
   fi
 }
 
-SERVICE_NAME=$1
-ACTION=$2
-
 if [ $# -le 0 ]; then
   help
-elif [ -e "${SERVICE_PATH}/${SERVICE_NAME}" ]; then
+elif [ -e "${SERVICE_PATH}/$1" ]; then
   load_file $CONFIG_FILE
   load_file $SERVICE_FILE
-  load_file "${SERVICE_PATH}/${SERVICE_NAME}"
-  invoke_service $SERVICE_NAME $ACTION
+  invoke_service $1 $2
 else
   help
 fi

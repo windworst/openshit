@@ -4,13 +4,13 @@ SERVICE_LIST="nova-api nova-consoleauth nova-scheduler nova-conductor nova-novnc
 NOVA_CONF_FILE=/etc/nova/nova.conf
 NOVA_COMPUTE_FILE=/etc/nova/nova-compute.conf
 
-func_clean()
+func_nova_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-func_config()
+func_nova_config()
 {
   set_database $SERVICE_NAME $SET_NOVA_DBPASS
   delete_user

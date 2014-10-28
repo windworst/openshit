@@ -2,7 +2,7 @@
 PACKAGE_LIST="rabbitmq-server"
 SERVICE_LIST="rabbitmq-server"
 
-func_config()
+func_rabbitmq_config()
 {
   sudo rabbitmqctl change_password guest $SET_RABBITMQ_PASS
 }

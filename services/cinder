@@ -3,13 +3,13 @@ PACKAGE_LIST="cinder-api cinder-scheduler python-cinderclient cinder-volume"
 SERVICE_LIST="cinder-scheduler cinder-api cinder-volume tgt"
 CINDER_CONF_FILE=/etc/cinder/cinder.conf
 
-func_clean()
+func_cinder_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-func_config()
+func_cinder_config()
 {
   set_database $SERVICE_NAME $SET_CINDER_DBPASS
   delete_user

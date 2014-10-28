@@ -3,13 +3,13 @@ PACKAGE_LIST="keystone python-keystoneclient"
 SERVICE_LIST="keystone"
 KEYSTONE_CONF_FILE=/etc/keystone/keystone.conf
 
-func_clean()
+func_keystone_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-func_config()
+func_keystone_config()
 {
   set_database $SERVICE_NAME $SET_KEYSTONE_DBPASS
   edit_conf

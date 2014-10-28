@@ -1,0 +1,46 @@
+#!/bin/bash
+SERVICE_LIST="all"
+PACKAGE_LIST="all"
+
+# args: service-list
+# env: ACTION
+invoke_service_list()
+{
+  echo $@
+  for item in $@;
+  do
+    bash $SCRIPT_NAME $item $ACTION
+  done
+}
+
+func_--all_service()
+{
+  invoke_service_list $SERVICES
+}
+
+func_--all_install()
+{
+  call_pre_install
+  invoke_service_list $SERVICES $COMPONENTS
+}
+
+func_--all_download()
+{
+  call_pre_install
+  invoke_service_list $SERVICES $COMPONENTS
+}
+
+func_--all_uninstall()
+{
+  invoke_service_list $SERVICES $COMPONENTS
+}
+
+func_--all_config()
+{
+  invoke_service_list $SERVICES
+}
+
+func_--all_clean()
+{
+  invoke_service_list $SERVICE_HAS_DATABASE
+}

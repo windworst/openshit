@@ -3,15 +3,23 @@ PACKAGE_LIST="mariadb-server python-mysqldb"
 SERVICE_LIST="mysql"
 MYSQL_CONFIG=/etc/mysql/my.cnf
 
-func_config()
+func_mysql_config()
 {
   edit_conf
   func_service restart
 }
 
-func_service()
+func_mysql_service()
 {
   sudo /etc/init.d/mysql $1
+}
+
+func_mysql_uninstall()
+{
+  echo "There some package:"
+  echo "  " $SET_PACKAGE_LIST
+  read -p "Do you want to remove? [Y/n]" ret
+  func_uninstall $PACKAGE_LIST
 }
 
 edit_conf()

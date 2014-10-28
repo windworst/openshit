@@ -3,7 +3,7 @@ PACKAGE_LIST="nova-network"
 SERVICE_LIST="nova-api nova-scheduler nova-conductor nova-network"
 NOVA_CONF_FILE=/etc/nova/nova.conf
 
-func_config()
+func_nova-network_config()
 {
   edit_conf
   func_service restart
