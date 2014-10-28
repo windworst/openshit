@@ -2,12 +2,37 @@
 SCRIPT_NAME=all-shit.sh
 MAIN_SCRIPT=openshit.sh
 PREINSTALL_SCRIPT=pre-install.sh
-INSTALL_LIST="mysql rabbitmq keystone glance nova nova-network cinder dashboard"
-SERVICE_LIST="mysql rabbitmq keystone glance nova nova-network cinder"
-REMOVE_LIST="dashboard cinder nova-network nova glance keystone"
-CLEAN_LIST="cinder nova glance keystone"
-REMOVE_DEPENDENCE_LIST="rabbitmq mysql"
-CONFIG_LIST="mysql rabbitmq keystone glance nova nova-network cinder"
+
+#services
+SERVICE_DATABASE=mysql
+SERVICE_MESSAGE_QUEUE=rabbitmq
+SERVICE_OPENSTACK_IDENTITY=keystone
+SERVICE_OPENSTACK_IMAGE=glance
+SERVICE_OPENSTACK_COMPUTE=nova
+SERVICE_OPENSTACK_BLOCK_STORAGE=cinder
+SERVICE_OPENSTACK_NETWORK=nova-network
+SERVICE_OPENSTACK_DASHBOARD=dashboard
+
+SERVICES="\
+  $SERVICE_DATABASE \
+  $SERVICE_MESSAGE_QUEUE \
+  $SERVICE_OPENSTACK_IDENTITY \
+  $SERVICE_OPENSTACK_IMAGE \
+  $SERVICE_OPENSTACK_COMPUTE \
+  $SERVICE_OPENSTACK_BLOCK_STORAGE \
+  $SERVICE_OPENSTACK_NETWORK \
+  "
+
+SERVICE_HAS_DATABASE="\
+  $SERVICE_OPENSTACK_IDENTITY \
+  $SERVICE_OPENSTACK_IMAGE \
+  $SERVICE_OPENSTACK_COMPUTE \
+  $SERVICE_OPENSTACK_BLOCK_STORAGE \
+  "
+
+COMPONENTS="\
+  $SERVICE_OPENSTACK_DASHBOARD
+  "
 
 # args: service-list
 # env: ACTION
@@ -15,8 +40,8 @@ CONFIG_LIST="mysql rabbitmq keystone glance nova nova-network cinder"
 ACTION=""
 run_openshit()
 {
-  local SERVICE_LIST=$@
-  for SERVICE in $SERVICE_LIST;
+  local LIST=$@
+  for SERVICE in $LIST;
   do
     echo "${ACTION}: ${SERVICE}"
     source $MAIN_SCRIPT $SERVICE $ACTION
@@ -34,25 +59,21 @@ if [ $# -lt 1 ]; then
 fi
 ACTION=$1
 if [ $ACTION = "start" -o $ACTION = "stop" -o $ACTION = "restart" ]; then
-  run_openshit $SERVICE_LIST
+  run_openshit $SERVICES
 elif [ $ACTION = "config" ]; then
-  run_openshit $CONFIG_LIST
+  run_openshit $SERVICES
 elif [ $ACTION = "clean" ]; then
-  run_openshit $CLEAN_LIST
+  run_openshit $SERVICE_HAS_DATABASE
 elif [ $ACTION = "install" -o $ACTION = "download" ]; then
   read -p "Do you need configure your soft-source before install/download? [Y/n]" ret
   if [ -z $ret -o 'Y' = $ret -o 'y' = $ret ]; then
     bash $PREINSTALL_SCRIPT
   fi
-  run_openshit $INSTALL_LIST
+  run_openshit $SERVICES
+  run_openshit $COMPONENTS
 elif [ $ACTION = "uninstall" ]; then
-  run_openshit $REMOVE_LIST
-  echo "There some dependence package:"
-  echo "    ${REMOVE_DEPENDENCE_LIST}"
-  read -p "Do you want to remove? [y/N]" ret
-  if [ 'Y' = $ret -o 'y' = $ret ]; then
-    run_openshit $REMOVE_DEPENDENCE_LIST
-  fi
+  run_openshit $SERVICES
+  run_openshit $COMPONENTS
 else
   help
 fi
