@@ -1,19 +1,2 @@
 #!/bin/bash
-PACKAGES="openstack-dashboard memcached python-memcache"
-
-help()
-{
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall>"
-}
-
-if [ $# -lt 2 ]; then
-  help
-elif [  "install" = $2 ]; then
-  run_install $PACKAGES
-elif [  "uninstall" = $2 ]; then
-  run_uninstall $PACKAGES
-elif [  "download" = $2 ]; then
-  run_download $PACKAGES
-else
-  help
-fi
+PACKAGE_LIST="openstack-dashboard memcached python-memcache"

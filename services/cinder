@@ -1,34 +1,22 @@
 #!/bin/bash
+PACKAGE_LIST="cinder-api cinder-scheduler python-cinderclient cinder-volume"
+SERVICE_LIST="cinder-scheduler cinder-api cinder-volume tgt"
 CINDER_CONF_FILE=/etc/cinder/cinder.conf
-PACKAGES="cinder-api cinder-scheduler python-cinderclient cinder-volume"
 
-help()
-{
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|clean|config|start|stop|restart>"
-}
-
-run_clean()
+func_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-run_service()
-{
-  sudo service cinder-scheduler $1
-  sudo service cinder-api $1
-  sudo service cinder-volume $1
-  sudo service tgt $1
-}
-
-run_config()
+func_config()
 {
   set_database $SERVICE_NAME $SET_CINDER_DBPASS
   delete_user
   create_user
   edit_conf
   sudo su -s /bin/sh -c "cinder-manage db sync" $SERVICE_NAME
-  run_service restart
+  func_service restart
 }
 
 edit_conf()
@@ -80,21 +68,3 @@ delete_user()
   keystone user-delete $SERVICE_NAME
   keystone service-delete $SERVICE_NAME
 }
-
-if [ $# -lt 2 ]; then
-  help
-elif [ "clean" = $2 ]; then
-  run_clean
-elif [ "config" = $2 ]; then
-  run_config
-elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  run_service $2
-elif [  "install" = $2 ]; then
-  run_install $PACKAGES
-elif [  "uninstall" = $2 ]; then
-  run_uninstall $PACKAGES
-elif [  "download" = $2 ]; then
-  run_download $PACKAGES
-else
-  help
-fi

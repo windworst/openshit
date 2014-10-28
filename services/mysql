@@ -1,19 +1,15 @@
 #!/bin/bash
+PACKAGE_LIST="mariadb-server python-mysqldb"
+SERVICE_LIST="mysql"
 MYSQL_CONFIG=/etc/mysql/my.cnf
-PACKAGES="mariadb-server python-mysqldb"
 
-help()
-{
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|config|start|stop|restart>"
-}
-
-run_config()
+func_config()
 {
   edit_conf
-  run_service restart
+  func_service restart
 }
 
-run_service()
+func_service()
 {
   sudo /etc/init.d/mysql $1
 }
@@ -33,19 +29,3 @@ edit_conf()
   set_conf_arg "init-connect" "init-connect = 'SET NAMES utf8'" $MYSQL_CONFIG
   set_conf_arg "character-set-server" "character-set-server = utf8" $MYSQL_CONFIG
 }
-
-if [ $# -lt 2 ]; then
-  help
-elif [ "config" = $2 ]; then
-  run_config
-elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  run_service $2
-elif [  "install" = $2 ]; then
-  run_install $PACKAGES
-elif [  "uninstall" = $2 ]; then
-  run_uninstall $PACKAGES
-elif [  "download" = $2 ]; then
-  run_download $PACKAGES
-else
-  help
-fi

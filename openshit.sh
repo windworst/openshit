@@ -16,11 +16,6 @@ load_file()
   source $FILE_NAME
 }
 
-load_conf()
-{
- load_file $CONFIG_FILE
-}
-
 load_admin_env()
 {
   load_file $ADMIN_ENV_FILE
@@ -96,25 +91,50 @@ set_conf_arg()
   sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
 }
 
-# args : package-list
-run_install()
+unset PACKAGE_LIST
+# env : PACKAGE_LIST ACTION
+func_package()
 {
-  echo "Installing: $@"
-  sudo apt-get -y install $@
+  if [ "install" = $1 ]; then
+    sudo apt-get -y install $PACKAGE_LIST
+  elif [ "download" = $1 ]; then
+    sudo apt-get -y -d install $PACKAGE_LIST
+  elif [ "uninstall" = $1 ]; then
+    sudo apt-get -y --purge remove $PACKAGE_LIST
+  fi
 }
 
-# args : package-list
-run_download()
+unset SERVICE_LIST
+# env: SERVICE_LIST ACTION
+func_service()
 {
-  echo "Downloading: $@"
-  sudo apt-get -y -d install $@
+  for item in $SERVICE_LIST;
+  do
+    echo "[$item $ACTION]"
+    sudo service $item $ACTION
+  done
 }
 
-# args : package-list
-run_uninstall()
+INVOKE="func_"
+
+# args: variable or function name
+is_usable()
 {
-  echo "Uninstalling: $@"
-  sudo apt-get -y --purge remove $@
+  if type "$INVOKE$1" &>/dev/null; then
+    return 0
+  fi
+  return 1
+}
+
+# args: actions-list
+echo_usable_action()
+{
+  for item in $@;
+  do
+    if is_usable $item; then
+      echo -n "$item "
+    fi
+  done
 }
 
 help()
@@ -126,12 +146,40 @@ help()
   done
 }
 
+# env: SERVICE_NAME, ACTION
+invoke_service()
+{
+  load_file "${SERVICE_PATH}/${SERVICE_NAME}"
+  if [ -z "$ACTION" ]; then
+    echo "$SERVICE_NAME Support actions:"
+    echo -n "  "
+    if [ ! -z "$SERVICE_LIST" ]; then
+      echo -n "start stop restart "
+    fi
+    if [ ! -z "$PACKAGE_LIST" ]; then
+      echo -n "install download uninstall "
+    fi
+    echo_usable_action "config clean"
+  fi
+  echo "[${SERVICE_NAME} ${ACTION}]"
+  if [ ! -z "$SERVICE_LIST" ] && [ "start" = $ACTION -o "stop" = $ACTION -o "restart" = $ACTION  ]; then
+    func_service $ACTION
+  elif [ ! -z "$PACKAGE_LIST" ] && [ "install" = $ACTION -o "uninstall" = $ACTION -o "download" = $ACTION  ]; then
+    func_package $ACTION
+  elif is_usable $ACTION; then
+    $INVOKE$ACTION
+  else
+    echo "$SERVICE_NAME: $ACTION Not Implement"
+  fi
+}
+
 if [ $# -le 0 ]; then
   help
 elif [ -e "${SERVICE_PATH}/"$1 ]; then
-  load_conf
+  load_file $CONFIG_FILE
   SERVICE_NAME=$1
-  source "${SERVICE_PATH}/"$1 $@
+  ACTION=$2
+  invoke_service
 else
   help
 fi

@@ -1,38 +1,23 @@
 #!/bin/bash
+PACKAGE_LIST="nova-api nova-cert nova-conductor nova-consoleauth nova-novncproxy nova-scheduler python-novaclient nova-compute"
+SERVICE_LIST="nova-api nova-consoleauth nova-scheduler nova-conductor nova-novncproxy nova-compute"
 NOVA_CONF_FILE=/etc/nova/nova.conf
 NOVA_COMPUTE_FILE=/etc/nova/nova-compute.conf
-PACKAGES="nova-api nova-cert nova-conductor nova-consoleauth nova-novncproxy nova-scheduler python-novaclient nova-compute"
 
-help()
-{
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|clean|config|start|stop|restart>"
-}
-
-run_clean()
+func_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-run_service()
-{
-  sudo service nova-api $1
-  sudo service nova-cert $1
-  sudo service nova-consoleauth $1
-  sudo service nova-scheduler $1
-  sudo service nova-conductor $1
-  sudo service nova-novncproxy $1
-  sudo service nova-compute $1
-}
-
-run_config()
+func_config()
 {
   set_database $SERVICE_NAME $SET_NOVA_DBPASS
   delete_user
   create_user
   edit_conf
   sudo su -s /bin/sh -c "nova-manage db sync" $SERVICE_NAME
-  run_service restart
+  func_service restart
 }
 
 edit_conf()
@@ -98,21 +83,3 @@ delete_user()
   keystone user-delete $SERVICE_NAME
   keystone service-delete $SERVICE_NAME
 }
-
-if [ $# -lt 2 ]; then
-  help
-elif [ "clean" = $2 ]; then
-  run_clean
-elif [ "config" = $2 ]; then
-  run_config
-elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  run_service $2
-elif [ "install" = $2 ]; then
-  run_install $PACKAGES
-elif [ "uninstall" = $2 ]; then
-  run_uninstall $PACKAGES
-elif [ "download" = $2 ]; then
-  run_download $PACKAGES
-else
-  help
-fi

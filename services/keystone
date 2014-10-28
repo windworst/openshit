@@ -1,36 +1,20 @@
 #!/bin/bash
+PACKAGE_LIST="keystone python-keystoneclient"
+SERVICE_LIST="keystone"
 KEYSTONE_CONF_FILE=/etc/keystone/keystone.conf
-PACKAGES="keystone python-keystoneclient"
 
-help()
-{
-  echo "usage: $SCRIPT_NAME $SERVICE_NAME <install|download|uninstall|clean|clean-expired|config|start|stop|restart>"
-}
-
-run_clean()
+func_clean()
 {
   delete_user
   drop_database $SERVICE_NAME
 }
 
-run_service()
-{
-  sudo service keystone $1
-}
-
-clean_expired_token()
-{
-  (crontab -l -u keystone 2>&1 | grep -q token_flush) || \
-  echo '@hourly /usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1' \
-  >> /var/spool/cron/crontabs/keystone
-}
-
-run_config()
+func_config()
 {
   set_database $SERVICE_NAME $SET_KEYSTONE_DBPASS
   edit_conf
   sudo su -s /bin/sh -c "keystone-manage db_sync" $SERVICE_NAME
-  run_service restart
+  func_service restart
   echo "Waiting for service keystone start..."
   sleep 5
   delete_user
@@ -76,22 +60,9 @@ delete_user()
   keystone role-delete _member_
 }
 
-if [ $# -lt 2 ]; then
-  help
-elif [ "clean" = $2 ]; then
-  run_clean
-elif [ "config" = $2 ]; then
-  run_config
-elif [ "clean-expired" = $2 ]; then
-  clean_expired_token
-elif [ "start" = $2 -o "stop" = $2 -o "restart" = $2 ]; then
-  run_service $2
-elif [ "install" = $2 ]; then
-  run_install $PACKAGES
-elif [ "uninstall" = $2 ]; then
-  run_uninstall $PACKAGES
-elif [ "download" = $2 ]; then
-  run_download $PACKAGES
-else
-  help
-fi
+clean_expired_token()
+{
+  (crontab -l -u keystone 2>&1 | grep -q token_flush) || \
+  echo '@hourly /usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1' \
+  >> /var/spool/cron/crontabs/keystone
+}
