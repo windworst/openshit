@@ -62,7 +62,7 @@ mysql_create()
     | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
 }
 # args: dbname dbpass conf_file
-mysql_set_connection_conf()
+mysql_set_conf()
 {
   local DBNAME=$1
   local DBPASS=$2

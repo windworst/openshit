@@ -8,7 +8,7 @@ func_rabbitmq_config()
 }
 
 # args: config_file
-set_rpc_config()
+rabbitmq_set_rpc_config()
 {
   local CONFIG_FILE=$1
   add_args_to_section $NOVA_CONF_FILE "\[DEFAULT\]" "rpc_backend" "rabbit_host" \

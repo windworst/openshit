@@ -1,4 +1,6 @@
 #!/bin/bash
+import $SERVICE_OPENSTACK_IDENTITY
+
 PACKAGE_LIST="nova-api nova-cert nova-conductor nova-consoleauth nova-novncproxy nova-scheduler python-novaclient nova-compute"
 SERVICE_LIST="nova-api nova-consoleauth nova-scheduler nova-conductor nova-novncproxy nova-compute"
 NOVA_CONF_FILE=/etc/nova/nova.conf
@@ -7,12 +9,12 @@ NOVA_COMPUTE_FILE=/etc/nova/nova-compute.conf
 func_nova_clean()
 {
   delete_user
-  drop_database $SERVICE_NAME
+  $SERVICE_DATABASE"_drop" $SERVICE_NAME
 }
 
 func_nova_config()
 {
-  set_database $SERVICE_NAME $SET_NOVA_DBPASS
+  $SERVICE_DATABASE"_create" $SERVICE_NAME $SET_NOVA_DBPASS
   delete_user
   create_user
   edit_conf
@@ -23,27 +25,10 @@ func_nova_config()
 edit_conf()
 {
   #config NOVA_CONF_FILE
-  add_args_to_section $NOVA_CONF_FILE "\[DEFAULT\]" "rpc_backend" "rabbit_host" \
-    "rabbit_password" "my_ip" "vncserver_listen" "vncserver_proxyclient_address" "verbose" \
+  add_args_to_section $NOVA_CONF_FILE "\[DEFAULT\]" \
+    "my_ip" "vncserver_listen" "vncserver_proxyclient_address" \
     "vnc_enabled" "novncproxy_base_url"
-  add_args_to_section $NOVA_CONF_FILE "\[database\]" "connection"
-  add_args_to_section $NOVA_CONF_FILE "\[keystone_authtoken\]" "auth_uri" \
-    "identity_uri" "admin_tenant_name" "admin_user" "admin_password"
   add_args_to_section $NOVA_CONF_FILE "\[glance\]" "host"
-
-  set_conf_arg "connection" "connection = mysql://$SERVICE_NAME:$SET_NOVA_DBPASS@$SET_CONTROLLER_IP:$SET_MYSQL_PORT/$SERVICE_NAME" $NOVA_CONF_FILE
-
-  set_conf_arg "verbose" "verbose = True" $NOVA_CONF_FILE
-
-  set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL_PUBLIC}" $NOVA_CONF_FILE
-  set_conf_arg "identity_uri" "identity_uri = http://$SET_CONTROLLER_IP:35357" $NOVA_CONF_FILE
-  set_conf_arg "admin_tenant_name" "admin_tenant_name = service" $NOVA_CONF_FILE
-  set_conf_arg "admin_user" "admin_user = $SERVICE_NAME" $NOVA_CONF_FILE
-  set_conf_arg "admin_password" "admin_password = $SET_NOVA_PASS" $NOVA_CONF_FILE
-
-  set_conf_arg "rpc_backend" "rpc_backend = rabbit" $NOVA_CONF_FILE
-  set_conf_arg "rabbit_host" "rabbit_host = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
-  set_conf_arg "rabbit_password" "rabbit_password = $SET_RABBITMQ_PASS" $NOVA_CONF_FILE
 
   set_conf_arg "my_ip" "my_ip = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
 
@@ -55,6 +40,10 @@ edit_conf()
 
   set_conf_arg "host" "host = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
 
+  $SERVICE_DATABASE"_set_conf" $SERVICE_NAME $SET_GLANCE_DBPASS $NOVA_CONF_FILE
+  $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_CINDER_PASS $NOVA_CONF_FILE
+  $SERVICE_MESSAGE_QUEUE"_set_rpc_config" $NOVA_CONF_FILE
+
   if [ $(egrep -c '(vmx|svm)' /proc/cpuinfo) -eq 0 ];then
     add_args_to_section $NOVA_COMPUTE_FILE "\[libvirt\]" "virt_type"
     set_conf_arg "virt_type" "virt_type = qemu" $NOVA_COMPUTE_FILE
@@ -64,17 +53,11 @@ edit_conf()
 create_user()
 {
   load_admin_env
-  keystone user-create --name $SERVICE_NAME --pass $SET_NOVA_PASS
-  keystone user-role-add --user $SERVICE_NAME --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
-
-  keystone service-create --name $SERVICE_NAME --type compute \
-    --description "OpenStack Compute"
-  keystone endpoint-create \
-    --service-id $(keystone service-list | awk '/ compute / {print $2}') \
-    --publicurl http://$SET_CONTROLLER_IP:8774/v2/%\(tenant_id\)s \
-    --internalurl http://$SET_CONTROLLER_IP:8774/v2/%\(tenant_id\)s \
-    --adminurl http://$SET_CONTROLLER_IP:8774/v2/%\(tenant_id\)s \
-    --region regionOne
+  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_NOVA_PASS compute
+  $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
+    "http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s" \
+    "http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s" \
+    "http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s"
 }
 
 delete_user()

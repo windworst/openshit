@@ -1,4 +1,7 @@
 #!/bin/bash
+import $SERVICE_DATABASE
+import $SERVICE_MESSAGE_QUEUE
+
 PACKAGE_LIST="keystone python-keystoneclient"
 SERVICE_LIST="keystone"
 KEYSTONE_CONF_FILE=/etc/keystone/keystone.conf
@@ -6,12 +9,12 @@ KEYSTONE_CONF_FILE=/etc/keystone/keystone.conf
 func_keystone_clean()
 {
   delete_user
-  drop_database $SERVICE_NAME
+  $SERVICE_DATABASE"_drop" $SERVICE_NAME
 }
 
 func_keystone_config()
 {
-  set_database $SERVICE_NAME $SET_KEYSTONE_DBPASS
+  $SERVICE_DATABASE"_create" $SERVICE_NAME $SET_KEYSTONE_DBPASS
   edit_conf
   sudo su -s /bin/sh -c "keystone-manage db_sync" $SERVICE_NAME
   func_service restart
@@ -87,15 +90,16 @@ keystone_set_conf()
   set_conf_arg "flavor" "flavor = keystone" $CONFIG_FILE
 }
 
-# args: user pass
+# args: user pass type
 keystone_create_user_service()
 {
   load_admin_env
   local USER=$1
   local PASS=$2
+  local TYPE=$3
   keystone user-create --name $USER --pass $PASS
   keystone user-role-add --user $USER --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
-  keystone service-create --name $USER --type image
+  keystone service-create --name $USER --type $TYPE
 }
 
 # args: service_name public_url internal_url admin_url

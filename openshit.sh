@@ -18,6 +18,17 @@ load_file()
   source $FILE_NAME
 }
 
+# args: service_name
+import()
+{
+  local SERV_NAME=$1
+  if ! is_usable $SERV_NAME; then
+    echo "$SERVICE_NAME not detected"
+    exit 1
+  fi
+  load_file $SERV_NAME
+}
+
 load_admin_env()
 {
   load_file $ADMIN_ENV_FILE
@@ -26,28 +37,6 @@ load_admin_env()
 load_service_env()
 {
   load_file $SERVICE_ENV_FILE
-}
-
-# args: dbname
-drop_database()
-{
-  local DBNAME=$1
-  echo "Drop Database ${DBNAME}"
-  echo "DROP DATABASE IF EXISTS ${DBNAME};" \
-  | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
-}
-# args: dbname password
-set_database()
-{
-  local DBNAME=$1
-  local DBPASS=$2
-  echo "Set Database ${DBNAME}"
-  echo "CREATE DATABASE IF NOT EXISTS ${DBNAME};
-  GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'localhost' \
-    IDENTIFIED BY '${DBPASS}';
-  GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'%' \
-    IDENTIFIED BY '${DBPASS}';" \
-    | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
 }
 
 #args: file section arg1 arg2 arg3 ......
