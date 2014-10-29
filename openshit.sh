@@ -55,7 +55,7 @@ add_args_to_section()
       let ++count
     done
   else
-    sudo sh -c "echo \n${SECTION} >> ${FILE}"
+    sudo sh -c "echo ${SECTION} >> ${FILE}"
     while (($count<=$#));
     do
       sudo grep -q "^[#, ]*${!count}.*" $FILE 2>/dev/null
