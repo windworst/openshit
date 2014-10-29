@@ -1,1 +1,88 @@
 #!/bin/bash
+import $SERVICE_COMPUTE
+
+PACKAGE_LIST="neutron-server neutron-plugin-ml2 python-neutronclient\
+  neutron-plugin-ml2 neutron-plugin-openvswitch-agent \
+  neutron-l3-agent neutron-dhcp-agent ipset"
+SERVICE_LIST="nova-api nova-scheduler nova-conductor nova-compute neutron-server \
+  neutron-plugin-openvswitch-agent neutron-l3-agent neutron-dhcp-agent \
+  neutron-metadata-agent"
+NEUTRON_CONF_FILE=/etc/neutron/neutron.conf
+NEUTRON_M2_CONF_FILE=/etc/neutron/plugins/ml2/ml2_conf.ini
+
+func_neutron_clean()
+{
+  delete_user
+  $SERVICE_DATABASE"_drop" $SERVICE_NAME
+}
+
+func_neutron_config()
+{
+  $SERVICE_DATABASE"_create" $SERVICE_NAME $SET_NEUTRON_DBPASS
+  delete_user
+  create_user
+  edit_conf
+  sudo  su -s /bin/sh -c "neutron-db-manage --config-file $NEUTRON_CONF_FILE \
+      --config-file $NEUTRON_M2_CONF_FILE upgrade juno" neutron
+  func_service restart
+}
+
+edit_conf()
+{
+  # NEUTRON_CONF_FILE
+  add_args_to_section $NEUTRON_CONF_FILE "\[DEFAULT\]" "auth_strategy" \
+    "core_plugin" "service_plugins" "allow_overlapping_ips" \
+  "notify_nova_on_port_status_changes" "notify_nova_on_port_data_changes" \
+  "nova_ur" "nova_admin_auth_url" "nova_region_name" "nova_admin_username" \
+  "nova_admin_tenant_id" "nova_admin_password"
+
+  set_conf_arg "auth_strategy" "auth_strategy = keystone" $NEUTRON_CONF_FILE
+  set_conf_arg "core_plugin" "core_plugin = ml2" $NEUTRON_CONF_FILE
+  set_conf_arg "service_plugins" "service_plugins = router" $NEUTRON_CONF_FILE
+  set_conf_arg "allow_overlapping_ips" "allow_overlapping_ips = True" $NEUTRON_CONF_FILE
+
+  set_conf_arg "notify_nova_on_port_status_changes" "notify_nova_on_port_status_changes = True"
+  set_conf_arg "notify_nova_on_port_data_changes" "notify_nova_on_port_data_changes = True"
+  set_conf_arg "nova_url" "nova_url = http://$SET_NOVA_IP:8774/v2"
+  set_conf_arg "nova_admin_auth_url" "nova_admin_auth_url = http://$SET_NOVA_IP:35357/v2.0"
+  set_conf_arg "nova_region_name" "nova_region_name = regionOne"
+  set_conf_arg "nova_admin_username" "nova_admin_username = nova"
+  set_conf_arg "nova_admin_tenant_id" "nova_admin_tenant_id = $(keystone tenant-get service | grep id | awk '{print $4}')"
+  set_conf_arg "nova_admin_password" "nova_admin_password = $SET_NOVA_PASS"
+
+  $SERVICE_DATABASE"_set_conf" $SERVICE_NAME $SET_NEUTRON_DBPASS $NEUTRON_CONF_FILE
+  $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_NEUTRON_PASS $NEUTRON_CONF_FILE
+  $SERVICE_MESSAGE_QUEUE"_set_rpc_config" $NEUTRON_CONF_FILE
+
+  # NEUTRON_M2_CONF_FILE
+  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ml2\]" "type_drivers" \
+    "tenant_network_types" "mechanism_drivers"
+  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ml2_type_flat\]" "flat_networks"
+  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ml2_type_gre\]" "tunnel_id_ranges"
+  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[securitygroup\]" "enable_security_group" \
+    "enable_ipset" "firewall_driver" "OVSHybridIptablesFirewallDriver"
+  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ovs\]" "local_ip" "tunnel_type" "enable_tunneling" "bridge_mappings"
+
+  # NOVA_CONF_FILE
+  add_arg_to_section $NOVA_CONF_FILE "\[DEFAULT\]" "network_api_class" "security_group_api" \
+    "linuxnet_interface_driver" "LinuxOVSInterfaceDriver" "firewall_driver"
+  add_arg_to_section $NOVA_CONF_FILE "\[neutron\]" "url" "auth_strategy" "admin_auth_url" \
+    "admin_tenant_name" "admin_username" "admin_password"
+}
+
+create_user()
+{
+  load_admin_env
+  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_NEUTRON_PASS network
+  $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
+    "http://$SET_NEUTRON_IP:9696" \
+    "http://$SET_NEUTRON_IP:9696" \
+    "http://$SET_NEUTRON_IP:9696"
+}
+
+delete_user()
+{
+  load_admin_env
+  keystone user-delete $SERVICE_NAME
+  keystone service-delete $SERVICE_NAME
+}

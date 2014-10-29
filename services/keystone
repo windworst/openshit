@@ -43,13 +43,12 @@ create_user()
   keystone user-role-add --tenant $SET_KEYSTONE_ADMIN_TENANT --user $SET_KEYSTONE_ADMIN --role _member_
 
   keystone tenant-create --name service --description "Service Tenant"
-  keystone service-create --name $SERVICE_NAME --type identity --description "OpenStack Identity"
-  keystone endpoint-create \
-  --service-id $(keystone service-list | awk '/ identity / {print $2}') \
-  --publicurl http://$SET_CONTROLLER_IP:5000/v2.0 \
-  --internalurl http://$SET_CONTROLLER_IP:5000/v2.0 \
-  --adminurl http://$SET_CONTROLLER_IP:35357/v2.0 \
-  --region regionOne
+  keystone service-create --name $SERVICE_NAME --type identity
+
+  keystone_create_endpoint $SERVICE_NAME \
+    "http://$SET_KEYSTONE_IP:5000/v2.0" \
+    "http://$SET_KEYSTONE_IP:5000/v2.0" \
+    "http://$SET_KEYSTONE_IP:35357/v2.0"
 }
 
 delete_user()

@@ -1,7 +1,8 @@
 #!/bin/bash
+import $SERVICE_COMPUTE
+
 PACKAGE_LIST="nova-network"
 SERVICE_LIST="nova-api nova-scheduler nova-conductor nova-network"
-NOVA_CONF_FILE=/etc/nova/nova.conf
 
 func_nova-network_config()
 {
