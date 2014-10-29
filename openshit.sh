@@ -3,9 +3,11 @@ SCRIPT_NAME=openshit.sh
 CONFIG_FILE=setting.conf
 SERVICE_FILE=service.conf
 SERVICE_PATH=services
+CONFIG_BAK_PATH=config_bak
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
 PRE_INSTALL_FILE=pre-install.sh
+EDIT_CONF_SCRIPT=conf_editor.py
 
 # args: FILE_NAME
 load_file()
@@ -75,6 +77,16 @@ set_conf_arg()
   local FILE=$3
   echo "${FILE}: ${NEW}"
   sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
+}
+
+# args: file_path function_name
+edit_config_file()
+{
+  local FILE_PATH=$1
+  local FUNC_NAME=$2
+  local FILE_NAME=${FILE_PATH##*/}
+  sudo cp $FILE_PATH $CONFIG_BAK_PATH
+  $FUNC_NAME | sudo python $EDIT_CONF_SCRIPT $CONFIG_BAK_PATH/$FILE_NAME > $FILE_PATH
 }
 
 call_pre_install()
