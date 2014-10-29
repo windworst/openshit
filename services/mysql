@@ -17,9 +17,9 @@ func_mysql_service()
 func_mysql_uninstall()
 {
   echo "There some package:"
-  echo "  " $SET_PACKAGE_LIST
+  echo "  " $PACKAGE_LIST
   read -p "Do you want to remove? [Y/n]" ret
-  func_uninstall $PACKAGE_LIST
+  func_uninstall
 }
 
 edit_conf()
@@ -36,4 +36,39 @@ edit_conf()
   set_conf_arg "collation-server" "collation-server = utf8_general_ci" $MYSQL_CONFIG
   set_conf_arg "init-connect" "init-connect = 'SET NAMES utf8'" $MYSQL_CONFIG
   set_conf_arg "character-set-server" "character-set-server = utf8" $MYSQL_CONFIG
+}
+
+# Use by other script
+
+# args: dbname
+mysql_drop()
+{
+  local DBNAME=$1
+  echo "Drop Database ${DBNAME}"
+  echo "DROP DATABASE IF EXISTS ${DBNAME};" \
+  | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
+}
+# args: dbname password
+mysql_create()
+{
+  local DBNAME=$1
+  local DBPASS=$2
+  echo "Set Database ${DBNAME}"
+  echo "CREATE DATABASE IF NOT EXISTS ${DBNAME};
+  GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'localhost' \
+    IDENTIFIED BY '${DBPASS}';
+  GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'%' \
+    IDENTIFIED BY '${DBPASS}';" \
+    | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
+}
+# args: dbname dbpass conf_file
+mysql_set_connection_conf()
+{
+  local DBNAME=$1
+  local DBPASS=$2
+  local CONF_FILE=$3
+
+  add_args_to_section $CONF_FILE "\[DEFAULT\]" "connection"
+  set_conf_arg "connection" \
+  "connection=mysql://$DBNAME:$DBPASS@$SET_MYSQL_IP:$SET_MYSQL_PORT/$DBNAME" $CONF_FILE
 }

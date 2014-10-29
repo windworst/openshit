@@ -66,3 +66,59 @@ clean_expired_token()
   echo '@hourly /usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1' \
   >> /var/spool/cron/crontabs/keystone
 }
+
+# Use by other script
+
+# args: user pass config_file
+keystone_set_conf()
+{
+  local USER=$1
+  local PASS=$2
+  local CONFIG_FILE=$3
+  add_args_to_section $CONFIG_FILE "\[keystone_authtoken\]" "auth_uri" \
+    "identity_uri" "admin_tenant_name" "admin_user" "admin_password"
+
+  set_conf_arg "auth_uri" "auth_uri = ${SET_KEYSTONE_AUTH_URL_PUBLIC}" $CONFIG_FILE
+  set_conf_arg "identity_uri" "identity_uri = http://$SET_KEYSTONE_IP:35357" $CONFIG_FILE
+  set_conf_arg "admin_tenant_name" "admin_tenant_name = service" $CONFIG_FILE
+  set_conf_arg "admin_user" "admin_user = $USER" $CONFIG_FILE
+  set_conf_arg "admin_password" "admin_password = $PASS" $CONFIG_FILE
+
+  set_conf_arg "flavor" "flavor = keystone" $CONFIG_FILE
+}
+
+# args: user pass
+keystone_create_user_service()
+{
+  load_admin_env
+  local USER=$1
+  local PASS=$2
+  keystone user-create --name $USER --pass $PASS
+  keystone user-role-add --user $USER --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
+  keystone service-create --name $USER --type image
+}
+
+# args: service_name public_url internal_url admin_url
+keystone_create_endpoint()
+{
+  local SERV_NAME=$1
+  local PURL=$2
+  local IURL=$3
+  local AURL=$4
+
+  keystone endpoint-create \
+    --service-id $(keystone service-list | grep $SERV_NAME | awk '{print $2}') \
+    --publicurl $PURL \
+    --internalurl $IURL \
+    --adminurl $AURL \
+    --region regionOne
+}
+
+# args: service_name
+keystone_delete_user_service()
+{
+  local SERV_NAME=$1
+  load_admin_env
+  keystone user-delete $SERV_NAME
+  keystone service-delete $SERV_NAME
+}
