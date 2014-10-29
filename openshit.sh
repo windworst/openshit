@@ -135,7 +135,7 @@ echo_usable_action()
 {
   for item in $@;
   do
-    if is_usable $INVOKE$item; then
+    if is_usable $INVOKE$item || is_usable "$INVOKE$SERVICE_NAME"_"$item"; then
       echo -n "$item "
     fi
   done
