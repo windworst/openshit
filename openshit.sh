@@ -117,7 +117,7 @@ func_download()
 func_uninstall()
 {
   sudo apt-get -y --purge remove $PACKAGE_LIST
-  sudo apt-get autoremove
+  sudo apt-get -y autoremove
 }
 
 # env: SET_SERVICE_LIST
