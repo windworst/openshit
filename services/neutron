@@ -1,17 +1,17 @@
 #!/bin/bash
-import $SERVICE_COMPUTE
+import $SERVICE_OPENSTACK_COMPUTE
 
 PACKAGE_LIST="neutron-server neutron-plugin-ml2 python-neutronclient\
   neutron-plugin-ml2 neutron-plugin-openvswitch-agent \
   neutron-l3-agent neutron-dhcp-agent ipset"
-SERVICE_LIST="nova-api nova-scheduler nova-conductor nova-compute neutron-server \
+SERVICE_LIST+=" nova-api nova-scheduler nova-conductor nova-compute neutron-server \
   neutron-plugin-openvswitch-agent neutron-l3-agent neutron-dhcp-agent \
   neutron-metadata-agent"
 NEUTRON_CONF_FILE=/etc/neutron/neutron.conf
 NEUTRON_M2_CONF_FILE=/etc/neutron/plugins/ml2/ml2_conf.ini
 
 func_neutron_clean()
-{ 
+{
   load_admin_env
   delete_user
   $SERVICE_DATABASE"_drop" $SERVICE_NAME
@@ -43,33 +43,60 @@ edit_conf()
   set_conf_arg "service_plugins" "service_plugins = router" $NEUTRON_CONF_FILE
   set_conf_arg "allow_overlapping_ips" "allow_overlapping_ips = True" $NEUTRON_CONF_FILE
 
-  set_conf_arg "notify_nova_on_port_status_changes" "notify_nova_on_port_status_changes = True"
-  set_conf_arg "notify_nova_on_port_data_changes" "notify_nova_on_port_data_changes = True"
-  set_conf_arg "nova_url" "nova_url = http://$SET_NOVA_IP:8774/v2"
-  set_conf_arg "nova_admin_auth_url" "nova_admin_auth_url = http://$SET_NOVA_IP:35357/v2.0"
-  set_conf_arg "nova_region_name" "nova_region_name = regionOne"
-  set_conf_arg "nova_admin_username" "nova_admin_username = nova"
-  set_conf_arg "nova_admin_tenant_id" "nova_admin_tenant_id = $(keystone tenant-get service | grep id | awk '{print $4}')"
-  set_conf_arg "nova_admin_password" "nova_admin_password = $SET_NOVA_PASS"
+  set_conf_arg "notify_nova_on_port_status_changes" "notify_nova_on_port_status_changes = True" $NEUTRON_CONF_FILE
+  set_conf_arg "notify_nova_on_port_data_changes" "notify_nova_on_port_data_changes = True" $NEUTRON_CONF_FILE
+  set_conf_arg "nova_url" "nova_url = http://$SET_NOVA_IP:8774/v2" $NEUTRON_CONF_FILE
+  set_conf_arg "nova_admin_auth_url" "nova_admin_auth_url = http://$SET_NOVA_IP:35357/v2.0" $NEUTRON_CONF_FILE
+  set_conf_arg "nova_region_name" "nova_region_name = regionOne" $NEUTRON_CONF_FILE
+  set_conf_arg "nova_admin_username" "nova_admin_username = nova" $NEUTRON_CONF_FILE
+  set_conf_arg "nova_admin_tenant_id" "nova_admin_tenant_id = $(keystone tenant-get service | grep id | awk '{print $4}')" $NEUTRON_CONF_FILE
+  set_conf_arg "nova_admin_password" "nova_admin_password = $SET_NOVA_PASS" $NEUTRON_CONF_FILE
 
   $SERVICE_DATABASE"_set_conf" $SERVICE_NAME $SET_NEUTRON_DBPASS $NEUTRON_CONF_FILE
   $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_NEUTRON_PASS $NEUTRON_CONF_FILE
   $SERVICE_MESSAGE_QUEUE"_set_rpc_config" $NEUTRON_CONF_FILE
 
   # NEUTRON_M2_CONF_FILE
-  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ml2\]" "type_drivers" \
+  add_args_to_section $NEUTRON_M2_CONF_FILE "\[ml2\]" "type_drivers" \
     "tenant_network_types" "mechanism_drivers"
-  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ml2_type_flat\]" "flat_networks"
-  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ml2_type_gre\]" "tunnel_id_ranges"
-  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[securitygroup\]" "enable_security_group" \
-    "enable_ipset" "firewall_driver" "OVSHybridIptablesFirewallDriver"
-  add_arg_to_section $NEUTRON_M2_CONF_FILE "\[ovs\]" "local_ip" "tunnel_type" "enable_tunneling" "bridge_mappings"
+  add_args_to_section $NEUTRON_M2_CONF_FILE "\[ml2_type_flat\]" "flat_networks"
+  add_args_to_section $NEUTRON_M2_CONF_FILE "\[ml2_type_gre\]" "tunnel_id_ranges"
+  add_args_to_section $NEUTRON_M2_CONF_FILE "\[securitygroup\]" "enable_security_group" \
+    "enable_ipset" "firewall_driver"
+  add_args_to_section $NEUTRON_M2_CONF_FILE "\[ovs\]" "local_ip" "tunnel_type" "enable_tunneling" "bridge_mappings"
+
+  set_conf_arg "type_drivers" "type_drivers = flat,gre" $NEUTRON_M2_CONF_FILE
+  set_conf_arg "tenant_network_types" "tenant_network_types = gre" $NEUTRON_M2_CONF_FILE
+  set_conf_arg "mechanism_drivers" "mechanism_drivers = openvswitch" $NEUTRON_M2_CONF_FILE
+
+  set_conf_arg "tunnel_id_ranges" "tunnel_id_ranges = 1:1000" $NEUTRON_M2_CONF_FILE
+
+  set_conf_arg "enable_security_group" "enable_security_group = True" $NEUTRON_M2_CONF_FILE
+  set_conf_arg "enable_ipset" "enable_ipset = True" $NEUTRON_M2_CONF_FILE
+  set_conf_arg "firewall_driver" "firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver" $NEUTRON_M2_CONF_FILE
+
+  set_conf_arg "local_ip" "local_ip = $SET_NEUTRON_IP" $NEUTRON_M2_CONF_FILE
+  set_conf_arg "tunnel_type" "tunnel_type = gre" $NEUTRON_M2_CONF_FILE
+  set_conf_arg "enable_tunneling" "enable_tunneling = True" $NEUTRON_M2_CONF_FILE
+  set_conf_arg "bridge_mappings" "bridge_mappings = external:br-ex" $NEUTRON_M2_CONF_FILE
 
   # NOVA_CONF_FILE
-  add_arg_to_section $NOVA_CONF_FILE "\[DEFAULT\]" "network_api_class" "security_group_api" \
+  add_args_to_section $NOVA_CONF_FILE "\[DEFAULT\]" "network_api_class" "security_group_api" \
     "linuxnet_interface_driver" "LinuxOVSInterfaceDriver" "firewall_driver"
-  add_arg_to_section $NOVA_CONF_FILE "\[neutron\]" "url" "auth_strategy" "admin_auth_url" \
+  add_args_to_section $NOVA_CONF_FILE "\[neutron\]" "url" "auth_strategy" "admin_auth_url" \
     "admin_tenant_name" "admin_username" "admin_password"
+
+  set_conf_arg "network_api_class" "network_api_class = nova.network.neutronv2.api.API" $NOVA_CONF_FILE
+  set_conf_arg "security_group_api" "security_group_api = neutron" $NOVA_CONF_FILE
+  set_conf_arg "linuxnet_interface_driver" "linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver" $NOVA_CONF_FILE
+  set_conf_arg "firewall_driver" "firewall_driver = nova.virt.firewall.NoopFirewallDriver" $NOVA_CONF_FILE
+
+  set_conf_arg "url" "url = http://$SET_NEUTRON_IP:9696" $NOVA_CONF_FILE
+  set_conf_arg "auth_strategy" "auth_strategy = keystone" $NOVA_CONF_FILE
+  set_conf_arg "admin_auth_url" "admin_auth_url = http://$SET_NEUTRON_IP:35357/v2.0" $NOVA_CONF_FILE
+  set_conf_arg "admin_tenant_name" "admin_tenant_name = service" $NOVA_CONF_FILE
+  set_conf_arg "admin_username" "admin_username = neutron" $NOVA_CONF_FILE
+  set_conf_arg "admin_password" "admin_password = $SET_NEUTRON_PASS" $NOVA_CONF_FILE
 }
 
 create_user()

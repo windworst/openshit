@@ -1,6 +1,6 @@
 #!/bin/bash
 import $SERVICE_DATABASE
-load_file $SERVICE_PATH/$SERVICE_MESSAGE_QUEUE
+import $SERVICE_MESSAGE_QUEUE
 
 PACKAGE_LIST="keystone python-keystoneclient"
 SERVICE_LIST="keystone"

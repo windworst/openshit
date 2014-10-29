@@ -18,15 +18,10 @@ load_file()
   source $FILE_NAME
 }
 
-# args: service_name
+# args: FILE_NAME
 import()
 {
-  local SERV_NAME=$1
-  if ! is_usable $SERV_NAME; then
-    echo "$SERV_NAME not detected"
-    exit 1
-  fi
-  load_file "${SERVICE_PATH}/$SERV_NAME"
+  load_file $SERVICE_PATH/$1
 }
 
 load_admin_env()
@@ -60,7 +55,7 @@ add_args_to_section()
       let ++count
     done
   else
-    sudo sh -c "echo ${SECTION} >> ${FILE}"
+    sudo sh -c "echo \n${SECTION} >> ${FILE}"
     while (($count<=$#));
     do
       sudo grep -q "^[#, ]*${!count}.*" $FILE 2>/dev/null
