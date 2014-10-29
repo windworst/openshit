@@ -23,10 +23,10 @@ import()
 {
   local SERV_NAME=$1
   if ! is_usable $SERV_NAME; then
-    echo "$SERVICE_NAME not detected"
+    echo "$SERV_NAME not detected"
     exit 1
   fi
-  load_file $SERV_NAME
+  load_file "${SERVICE_PATH}/$SERV_NAME"
 }
 
 load_admin_env()
@@ -129,7 +129,7 @@ INVOKE="func_"
 # args: variable or function name
 is_usable()
 {
-  if type "$INVOKE$1" &>/dev/null; then
+  if type "$1" &>/dev/null; then
     return 0
   fi
   return 1
@@ -140,7 +140,7 @@ echo_usable_action()
 {
   for item in $@;
   do
-    if is_usable $item; then
+    if is_usable $INVOKE$item; then
       echo -n "$item "
     fi
   done
@@ -182,9 +182,9 @@ invoke_service()
     else
       func_service $ACTION
     fi
-  elif is_usable "$SERVICE_NAME"_"$ACTION"; then
+  elif is_usable "$INVOKE$SERVICE_NAME"_"$ACTION"; then
     $INVOKE$SERVICE_NAME"_"$ACTION
-  elif is_usable "$ACTION"; then
+  elif is_usable "$INVOKE$ACTION"; then
     $INVOKE$ACTION
   else
     echo "$SERVICE_NAME: '$ACTION' Not Implement"
@@ -198,5 +198,6 @@ elif [ -e "${SERVICE_PATH}/$1" ]; then
   load_file $SERVICE_FILE
   invoke_service $1 $2
 else
-  help
+  echo "$1 not found..."
+  exit 1
 fi

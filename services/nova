@@ -8,6 +8,7 @@ NOVA_COMPUTE_FILE=/etc/nova/nova-compute.conf
 
 func_nova_clean()
 {
+  load_admin_env
   delete_user
   $SERVICE_DATABASE"_drop" $SERVICE_NAME
 }
@@ -15,6 +16,7 @@ func_nova_clean()
 func_nova_config()
 {
   $SERVICE_DATABASE"_create" $SERVICE_NAME $SET_NOVA_DBPASS
+  load_admin_env
   delete_user
   create_user
   edit_conf
@@ -33,15 +35,15 @@ edit_conf()
   set_conf_arg "my_ip" "my_ip = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
 
   set_conf_arg "vnc_enabled" "vnc_enabled = True" $NOVA_CONF_FILE
-  set_conf_arg "vncserver_listen" "vncserver_listen = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
-  set_conf_arg "vncserver_proxyclient_address" "vncserver_proxyclient_address = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
+  set_conf_arg "vncserver_listen" "vncserver_listen = $SET_VNC_IP" $NOVA_CONF_FILE
+  set_conf_arg "vncserver_proxyclient_address" "vncserver_proxyclient_address = $SET_VNC_IP" $NOVA_CONF_FILE
 
-  set_conf_arg "novncproxy_base_url" "novncproxy_base_url = http://$SET_CONTROLLER_IP:6080/vnc_auto.html" $NOVA_CONF_FILE
+  set_conf_arg "novncproxy_base_url" "novncproxy_base_url = http://$SET_VNC_CONNECT_IP:6080/vnc_auto.html" $NOVA_CONF_FILE
 
-  set_conf_arg "host" "host = $SET_CONTROLLER_IP" $NOVA_CONF_FILE
+  set_conf_arg "host" "host = $SET_VNC_IP" $NOVA_CONF_FILE
 
   $SERVICE_DATABASE"_set_conf" $SERVICE_NAME $SET_NOVA_DBPASS $NOVA_CONF_FILE
-  $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_CINDER_PASS $NOVA_CONF_FILE
+  $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_NOVA_PASS $NOVA_CONF_FILE
   $SERVICE_MESSAGE_QUEUE"_set_rpc_config" $NOVA_CONF_FILE
 
   if [ $(egrep -c '(vmx|svm)' /proc/cpuinfo) -eq 0 ];then
@@ -52,17 +54,14 @@ edit_conf()
 
 create_user()
 {
-  load_admin_env
   $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_NOVA_PASS compute
   $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
-    "http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s" \
-    "http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s" \
-    "http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s"
+    http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s \
+    http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s \
+    http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s
 }
 
 delete_user()
 {
-  load_admin_env
-  keystone user-delete $SERVICE_NAME
-  keystone service-delete $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_user_service" $SERVICE_NAME
 }

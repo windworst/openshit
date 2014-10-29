@@ -70,5 +70,5 @@ mysql_set_conf()
 
   add_args_to_section $CONF_FILE "\[DEFAULT\]" "connection"
   set_conf_arg "connection" \
-  "connection=mysql://$DBNAME:$DBPASS@$SET_MYSQL_IP:$SET_MYSQL_PORT/$DBNAME" $CONF_FILE
+  "connection=mysql://${DBNAME}:${DBPASS}@${SET_MYSQL_IP}:${SET_MYSQL_PORT}/${DBNAME}" $CONF_FILE
 }

@@ -11,7 +11,8 @@ NEUTRON_CONF_FILE=/etc/neutron/neutron.conf
 NEUTRON_M2_CONF_FILE=/etc/neutron/plugins/ml2/ml2_conf.ini
 
 func_neutron_clean()
-{
+{ 
+  load_admin_env
   delete_user
   $SERVICE_DATABASE"_drop" $SERVICE_NAME
 }
@@ -19,6 +20,7 @@ func_neutron_clean()
 func_neutron_config()
 {
   $SERVICE_DATABASE"_create" $SERVICE_NAME $SET_NEUTRON_DBPASS
+  load_admin_env
   delete_user
   create_user
   edit_conf
@@ -72,7 +74,6 @@ edit_conf()
 
 create_user()
 {
-  load_admin_env
   $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_NEUTRON_PASS network
   $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
     "http://$SET_NEUTRON_IP:9696" \
@@ -82,7 +83,5 @@ create_user()
 
 delete_user()
 {
-  load_admin_env
-  keystone user-delete $SERVICE_NAME
-  keystone service-delete $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_user_service" $SERVICE_NAME
 }

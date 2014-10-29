@@ -10,6 +10,9 @@ invoke_service_list()
   for item in $@;
   do
     bash $SCRIPT_NAME $item $ACTION
+    if [ ! 0 -eq $? ]; then
+      break;
+    fi
   done
 }
 

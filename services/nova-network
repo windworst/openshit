@@ -1,5 +1,5 @@
 #!/bin/bash
-import $SERVICE_COMPUTE
+import $SERVICE_OPENSTACK_COMPUTE
 
 PACKAGE_LIST="nova-network"
 SERVICE_LIST="nova-api nova-scheduler nova-conductor nova-network"

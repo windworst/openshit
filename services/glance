@@ -8,16 +8,25 @@ GLANCE_REGISTRY_CONF=/etc/glance/glance-registry.conf
 
 func_glance_clean()
 {
+  load_admin_env
   delete_user
   $SERVICE_DATABASE"_drop" $SERVICE_NAME
 }
 
 func_glance_config()
 {
+  #edif conf
   $SERVICE_DATABASE"_create" $SERVICE_NAME $SET_GLANCE_DBPASS
-  delete_user
-  create_user
+
   edit_conf
+
+  #delete user
+  load_admin_env
+  delete_user
+
+  #create_user
+  create_user
+
   sudo su -s /bin/sh -c "glance-manage db_sync" $SERVICE_NAME
   func_service restart
 }
@@ -33,18 +42,16 @@ edit_conf()
   $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_GLANCE_PASS $GLANCE_REGISTRY_CONF
 }
 
-create_user()
-{
-  load_admin_env
-  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_GLANCE_PASS image
-  $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
-    "http://$SET_GLANCE_IP:9292" \
-    "http://$SET_GLANCE_IP:9292" \
-    "http://$SET_GLANCE_IP:9292"
-}
-
 delete_user()
 {
-  load_admin_env
   $SERVICE_OPENSTACK_IDENTITY"_delete_user_service" $SERVICE_NAME
+}
+
+create_user()
+{
+  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_GLANCE_PASS image
+  $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
+    http://$SET_GLANCE_IP:9292 \
+    http://$SET_GLANCE_IP:9292 \
+    http://$SET_GLANCE_IP:9292
 }
