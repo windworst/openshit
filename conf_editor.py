@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys
 import re
 
@@ -53,10 +55,9 @@ def merge_config(f_source,f_in,f_out):
       f_out.write(line);
     elif section_dict:
       items = line_value.split('=')
-      if len(items)<2:
+      if len(items)<1:
         continue
       key = items[0].strip()
-      value = items[1].strip()
       if key in section_dict:
         f_out.write("%s = %s\n"%(key,section_dict[key]))
         del section_dict[key]
