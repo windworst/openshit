@@ -19,7 +19,9 @@ func_mysql_uninstall()
   echo "There some package:"
   echo "  " $PACKAGE_LIST
   read -p "Do you want to remove? [Y/n]" ret
-  func_uninstall
+  if [ "Y" = $ret -o "y" = $ret ]; then
+    func_uninstall
+  fi
 }
 
 edit_conf()

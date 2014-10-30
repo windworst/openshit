@@ -204,8 +204,8 @@ invoke_service()
 if [ $# -le 0 ]; then
   help
 elif [ -e "${SERVICE_PATH}/$1" ]; then
-  load_file $CONFIG_FILE
   load_file $SERVICE_FILE
+  load_file $CONFIG_FILE
   invoke_service $1 $2
 else
   echo "$1 not found..."
