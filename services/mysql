@@ -72,3 +72,12 @@ mysql_set_conf()
   set_conf_arg "connection" \
   "connection=mysql://${DBNAME}:${DBPASS}@${SET_MYSQL_IP}:${SET_MYSQL_PORT}/${DBNAME}" $CONF_FILE
 }
+
+# args: dbname dbpass
+mysql_edit_conf()
+{
+  local DBNAME=$1
+  local DBPASS=$2
+
+  echo "connection = mysql://${DBNAME}:${DBPASS}@${SET_MYSQL_IP}:${SET_MYSQL_PORT}/${DBNAME}"
+}

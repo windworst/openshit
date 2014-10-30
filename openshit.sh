@@ -7,7 +7,7 @@ CONFIG_BAK_PATH=config_bak
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
 PRE_INSTALL_FILE=pre-install.sh
-EDIT_CONF_SCRIPT=conf_editor.py
+CONFIG_EDITOR=conf_editor.py
 
 # args: FILE_NAME
 load_file()
@@ -79,14 +79,17 @@ set_conf_arg()
   sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
 }
 
-# args: file_path function_name
+# args: file_path function_name arg1 arg2 ....
 edit_config_file()
 {
   local FILE_PATH=$1
   local FUNC_NAME=$2
   local FILE_NAME=${FILE_PATH##*/}
-  sudo cp $FILE_PATH $CONFIG_BAK_PATH
-  $FUNC_NAME | sudo python $EDIT_CONF_SCRIPT $CONFIG_BAK_PATH/$FILE_NAME > $FILE_PATH
+  mkdir -p $CONFIG_BAK_PATH &>/dev/null
+  sudo cat $FILE_PATH > $CONFIG_BAK_PATH/$FILE_NAME
+  shift 2
+  echo "Configuring $FILE_PATH ..."
+  $FUNC_NAME $@ | python $CONFIG_EDITOR $CONFIG_BAK_PATH/$FILE_NAME | sudo tee $FILE_PATH
 }
 
 call_pre_install()
@@ -101,7 +104,7 @@ call_pre_install()
   NEED_PRE_INSTALL=n
 }
 
-# env : SET_PACKAGE_LIST 
+# env : SET_PACKAGE_LIST
 func_install()
 {
   call_pre_install

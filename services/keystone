@@ -89,6 +89,23 @@ keystone_set_conf()
   set_conf_arg "flavor" "flavor = keystone" $CONFIG_FILE
 }
 
+# args: user pass
+keystone_edit_conf()
+{
+  local USER=$1
+  local PASS=$2
+
+  echo "[keystone_authtoken]"
+  echo "auth_uri = ${SET_KEYSTONE_AUTH_URL_PUBLIC}"
+  echo "identity_uri = http://${SET_KEYSTONE_IP}:35357"
+  echo "admin_tenant_name = service"
+  echo "admin_user = $USER"
+  echo "admin_password = $PASS"
+
+  echo "[paste_deploy]"
+  echo "flavor" "flavor = keystone"
+}
+
 # args: user pass type
 keystone_create_user_service()
 {
