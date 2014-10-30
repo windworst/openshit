@@ -12,22 +12,24 @@ func_nova-network_config()
 
 edit_conf()
 {
-  add_args_to_section $NOVA_CONF_FILE "\[DEFAULT\]" "network_api_class" \
-    "security_group_api" "firewall_driver" "network_manager" "network_size" \
-    "allow_same_net_traffic" "multi_host" "send_arp_for_ha" "share_dhcp_address" \
-    "force_dhcp_release" "flat_network_bridge" "flat_interface" "public_interface"
+  edit_config_file $NOVA_CONF_FILE edit_nova_network_conf
+}
 
-  set_conf_arg "network_api_class" "network_api_class = nova.network.api.API" $NOVA_CONF_FILE
-  set_conf_arg "security_group_api" "security_group_api = nova" $NOVA_CONF_FILE
-  set_conf_arg "firewall_driver" "firewall_driver = nova.virt.libvirt.firewall.IptablesFirewallDriver" $NOVA_CONF_FILE
-  set_conf_arg "network_manager" "network_manager = nova.network.manager.FlatDHCPManager" $NOVA_CONF_FILE
-  set_conf_arg "network_size" "network_size = 254" $NOVA_CONF_FILE
-  set_conf_arg "allow_same_net_traffic" "allow_same_net_traffic = False" $NOVA_CONF_FILE
-  set_conf_arg "multi_host" "multi_host = True" $NOVA_CONF_FILE
-  set_conf_arg "send_arp_for_ha" "send_arp_for_ha = True" $NOVA_CONF_FILE
-  set_conf_arg "share_dhcp_address" "share_dhcp_address = True" $NOVA_CONF_FILE
-  set_conf_arg "force_dhcp_release" "force_dhcp_release = True" $NOVA_CONF_FILE
-  set_conf_arg "flat_network_bridge" "flat_network_bridge = br100" $NOVA_CONF_FILE
-  set_conf_arg "flat_interface" "flat_interface = ${SET_INTERFACE_NAME}" $NOVA_CONF_FILE
-  set_conf_arg "public_interface" "public_interface = ${SET_INTERFACE_NAME}" $NOVA_CONF_FILE
+edit_nova_network_conf()
+{
+  echo "[DEFAULT]"
+  echo "network_api_class = nova.network.api.API"
+  echo "security_group_api = nova"
+  echo "firewall_driver = nova.virt.libvirt.firewall.IptablesFirewallDriver"
+  echo "network_manager = nova.network.manager.FlatDHCPManager"
+  echo "network_size = 254"
+  echo "allow_same_net_traffic = False"
+  echo "multi_host = True"
+  echo "send_arp_for_ha = True"
+  echo "share_dhcp_address = True"
+  echo "force_dhcp_release = True"
+  echo "flat_network_bridge = br100"
+  echo "flat_interface = ${SET_INTERFACE_NAME}"
+  echo "public_interface = ${SET_INTERFACE_NAME}"
+
 }
