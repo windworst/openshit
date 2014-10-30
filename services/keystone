@@ -103,7 +103,7 @@ keystone_edit_conf()
   echo "admin_password = $PASS"
 
   echo "[paste_deploy]"
-  echo "flavor" "flavor = keystone"
+  echo "flavor = keystone"
 }
 
 # args: user pass type

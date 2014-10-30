@@ -81,5 +81,6 @@ mysql_edit_conf()
   local DBNAME=$1
   local DBPASS=$2
 
+  echo "[database]"
   echo "connection = mysql://${DBNAME}:${DBPASS}@${SET_MYSQL_IP}:${SET_MYSQL_PORT}/${DBNAME}"
 }
