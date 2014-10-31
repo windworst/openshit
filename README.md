@@ -1,33 +1,31 @@
-OpenShit, OpenStack HITter (THIS IS A NEW SHIT!)
+**OpenShit, OpenStack HITter (THIS IS A NEW SHIT!)**
 
-An Open Stack Services Manager
-
-Version 0.1
+__An Open Stack Configurer__
 
 support ubuntu 14.04 (server/desktop)
 
-Usage:
+**Usage:**
 
-  Manage single service, use:
+    chmod a+x openshit.sh
+    openshit.sh <Service_Name> [Action]
 
-    bash openshit.sh
+  **For example**
 
-  it will show you a list of services, and use:
+    openshit.sh --all
+    openshit.sh cinder
+    openshit.sh dashboard
+    openshit.sh glance
+    openshit.sh keystone
+    openshit.sh mysql
+    openshit.sh neutron
+    openshit.sh nova
+    openshit.sh nova-network
+    openshit.sh rabbitmq
 
-    bash openshit.sh <Service Name>
-
-  to manage service
-
-  Operating all services by:
-
-    bash all-shit.sh
-
-  Like:
-
-    bash all-shit.sh install
-
-    bash all-shit.sh config
-
-    bash all-shit.sh restart
-
-    bash all-shit.sh uninstall
+  **install & configure Openstack**
+  
+    ./openshit.sh --all install && ./openshit.sh --all config
+    
+  **clean & uninstall**
+  
+    ./openshit.sh --all clean && ./openshit.sh --all uninstall
