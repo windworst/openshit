@@ -86,7 +86,7 @@ edit_config_file()
   local FUNC_NAME=$2
   local FILE_NAME=${FILE_PATH##*/}
   mkdir -p $CONFIG_BAK_PATH &>/dev/null
-  sudo $FILE_PATH $CONFIG_BAK_PATH/$FILE_NAME
+  sudo cp $FILE_PATH $CONFIG_BAK_PATH/$FILE_NAME
   sudo chmod 777 $CONFIG_BAK_PATH/$FILE_NAME
   shift 2
   echo "Configuring $FILE_PATH ..."
