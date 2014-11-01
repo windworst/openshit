@@ -7,17 +7,6 @@ func_rabbitmq_config()
   sudo rabbitmqctl change_password guest $SET_RABBITMQ_PASS
 }
 
-# args: config_file
-rabbitmq_set_rpc_config()
-{
-  local CONFIG_FILE=$1
-  add_args_to_section $CONFIG_FILE "\[DEFAULT\]" "rpc_backend" "rabbit_host" \
-    "rabbit_password"
-  set_conf_arg "rpc_backend" "rpc_backend = rabbit" $CONFIG_FILE
-  set_conf_arg "rabbit_host" "rabbit_host = $SET_RABBITMQ_IP" $CONFIG_FILE
-  set_conf_arg "rabbit_password" "rabbit_password = $SET_RABBITMQ_PASS" $CONFIG_FILE
-}
-
 rabbitmq_edit_rpc_config()
 {
   echo "[DEFAULT]"

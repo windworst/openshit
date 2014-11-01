@@ -36,49 +36,6 @@ load_service_env()
   load_file $SERVICE_ENV_FILE
 }
 
-#args: file section arg1 arg2 arg3 ......
-add_args_to_section()
-{
-  local FILE=$1
-  local SECTION=$2
-  local count=3
-  if [ $# -lt $count ]; then
-    return
-  fi
-
-  sudo grep -q "^$SECTION" $FILE 2>/dev/null
-  if [ $? -eq 0 ]; then
-    while (($count<=$#));
-    do
-      sudo grep -q "^[#, ]*${!count}.*" $FILE 2>/dev/null
-      if [ $? -ne 0 ]; then
-        sudo sed -i "s/^[#, ]*${SECTION}.*/${SECTION}\n${!count}/g" $FILE
-      fi
-      let ++count
-    done
-  else
-    sudo sh -c "echo ${SECTION} >> ${FILE}"
-    while (($count<=$#));
-    do
-      sudo grep -q "^[#, ]*${!count}.*" $FILE 2>/dev/null
-      if [ $? -ne 0 ]; then
-        sudo sh -c "echo ${!count} >> ${FILE}"
-      fi
-      let ++count
-    done
-  fi
-}
-
-# args: old new file
-set_conf_arg()
-{
-  local OLD=$1
-  local NEW=$2
-  local FILE=$3
-  echo "${FILE}: ${NEW}"
-  sudo sed -i "s|^[#, ]*${OLD}.*|${NEW}|g" ${FILE}
-}
-
 # args: file_path function_name arg1 arg2 ....
 edit_config_file()
 {
@@ -90,7 +47,7 @@ edit_config_file()
   sudo chmod 777 $CONFIG_BAK_PATH/$FILE_NAME
   shift 2
   echo "Configuring $FILE_PATH ..."
-  $FUNC_NAME $@ | python $CONFIG_EDITOR $CONFIG_BAK_PATH/$FILE_NAME | sudo tee $FILE_PATH
+  $FUNC_NAME $@ | python $CONFIG_EDITOR $CONFIG_BAK_PATH/$FILE_NAME | sudo tee $FILE_PATH &>/dev/null
 }
 
 call_pre_install()

@@ -25,15 +25,19 @@ func_cinder_config()
 
 edit_conf()
 {
-  #config CINDER_CONF_FILE
-  add_args_to_section $CINDER_CONF_FILE "\[DEFAULT\]" "glance_host" "my_ip"
+  edit_config_file $CINDER_CONF_FILE edit_cinder_conf
+}
 
-  set_conf_arg "my_ip" "my_ip = $SET_CINDER_IP" $CINDER_CONF_FILE
-  set_conf_arg "glance_host" "glance_host = $SET_CINDER_IP" $CINDER_CONF_FILE
+edit_cinder_conf()
+{
+  echo "[DEFAULT]"
+  echo "my_ip = $SET_CINDER_IP"
+  echo "glance_host = $SET_CINDER_IP"
+  echo "verbose = True"
 
-  $SERVICE_DATABASE"_set_conf" $SERVICE_NAME $SET_CINDER_DBPASS $CINDER_CONF_FILE
-  $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_CINDER_PASS $CINDER_CONF_FILE
-  $SERVICE_MESSAGE_QUEUE"_set_rpc_config" $CINDER_CONF_FILE
+  $SERVICE_DATABASE"_edit_conf" $SERVICE_NAME $SET_CINDER_DBPASS
+  $SERVICE_OPENSTACK_IDENTITY"_edit_conf" $SERVICE_NAME $SET_CINDER_PASS
+  $SERVICE_MESSAGE_QUEUE"_edit_rpc_config"
 }
 
 create_user()
@@ -43,6 +47,12 @@ create_user()
     http://$SET_CINDER_IP:8776/v1/%\(tenant_id\)s \
     http://$SET_CINDER_IP:8776/v1/%\(tenant_id\)s \
     http://$SET_CINDER_IP:8776/v1/%\(tenant_id\)s
+
+  $SERVICE_OPENSTACK_IDENTITY service-create --name $SERVICE_NAME"v2" --type volumev2
+  $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME"v2" \
+    http://$SET_CINDER_IP:8776/v2/%\(tenant_id\)s \
+    http://$SET_CINDER_IP:8776/v2/%\(tenant_id\)s \
+    http://$SET_CINDER_IP:8776/v2/%\(tenant_id\)s
 }
 
 delete_user()

@@ -31,5 +31,5 @@ edit_nova_network_conf()
   echo "flat_network_bridge = br100"
   echo "flat_interface = ${SET_INTERFACE_NAME}"
   echo "public_interface = ${SET_INTERFACE_NAME}"
-
+  echo "verbose = True"
 }

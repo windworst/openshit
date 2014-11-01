@@ -45,6 +45,8 @@ edit_nova_conf()
 
   echo "novncproxy_base_url = http://$SET_VNC_CONNECT_IP:6080/vnc_auto.html"
 
+  echo "verbose = True"
+
   echo "[glance]"
   echo "host = $SET_VNC_IP"
 

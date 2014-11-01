@@ -4,7 +4,7 @@ import $SERVICE_OPENSTACK_IDENTITY
 SERVICE_LIST="glance-registry glance-api"
 PACKAGE_LIST="glance python-glanceclient"
 GLANCE_API_CONF_FILE=/etc/glance/glance-api.conf
-GLANCE_REGISTRY_CONF=/etc/glance/glance-registry.conf
+GLANCE_REGISTRY_CONF_FILE=/etc/glance/glance-registry.conf
 
 func_glance_clean()
 {
@@ -34,12 +34,30 @@ func_glance_config()
 edit_conf()
 {
   #config $GLANCE_API_CONFIG_FILE
-  $SERVICE_DATABASE"_set_conf" $SERVICE_NAME $SET_GLANCE_DBPASS $GLANCE_API_CONF_FILE
-  $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_GLANCE_PASS $GLANCE_API_CONF_FILE
+  edit_config_file $GLANCE_API_CONF_FILE edit_glance_api_conf
 
   #config $GLANCE_REGISTRY_CONF
-  $SERVICE_DATABASE"_set_conf" $SERVICE_NAME $SET_GLANCE_DBPASS $GLANCE_REGISTRY_CONF
-  $SERVICE_OPENSTACK_IDENTITY"_set_conf" $SERVICE_NAME $SET_GLANCE_PASS $GLANCE_REGISTRY_CONF
+  edit_config_file $GLANCE_REGISTRY_CONF_FILE edit_glance_registry_conf
+}
+
+edit_glance_api_conf()
+{
+  $SERVICE_OPENSTACK_IDENTITY"_edit_conf" $SERVICE_NAME $SET_GLANCE_PASS
+  $SERVICE_DATABASE"_edit_conf" $SERVICE_NAME $SET_GLANCE_DBPASS
+  echo "[paste_deploy]"
+  echo "flavor = keystone"
+  echo "[DEFAULT]"
+  echo "verbose = True"
+}
+
+edit_glance_registry_conf()
+{
+  $SERVICE_OPENSTACK_IDENTITY"_edit_conf" $SERVICE_NAME $SET_GLANCE_PASS
+  $SERVICE_DATABASE"_edit_conf" $SERVICE_NAME $SET_GLANCE_DBPASS
+  echo "[paste_deploy]"
+  echo "flavor = keystone"
+  echo "[DEFAULT]"
+  echo "verbose = True"
 }
 
 delete_user()

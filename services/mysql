@@ -26,18 +26,17 @@ func_mysql_uninstall()
 
 edit_conf()
 {
-  add_args_to_section $MYSQL_CONFIG "\[mysqld\]" \
-    "innodb_file_per_table" \
-    "default-storage-engine" \
-    "collation-server" \
-    "init-connect" \
-    "character-set-server" \
-    "bind-address"
-  set_conf_arg "bind-address" "bind-address = 0.0.0.0" $MYSQL_CONFIG
-  set_conf_arg "default-storage-engine" "default-storage-engine = InnoDB" $MYSQL_CONFIG
-  set_conf_arg "collation-server" "collation-server = utf8_general_ci" $MYSQL_CONFIG
-  set_conf_arg "init-connect" "init-connect = 'SET NAMES utf8'" $MYSQL_CONFIG
-  set_conf_arg "character-set-server" "character-set-server = utf8" $MYSQL_CONFIG
+  edit_config_file $MYSQL_CONFIG edit_mysql_config
+}
+
+edit_mysql_config()
+{
+  echo "[mysqld]"
+  echo "bind-address = 0.0.0.0"
+  echo "default-storage-engine = InnoDB"
+  echo "collation-server = utf8_general_ci"
+  echo "init-connect = 'SET NAMES utf8'"
+  echo "character-set-server = utf8"
 }
 
 # Use by other script
@@ -62,17 +61,6 @@ mysql_create()
   GRANT ALL PRIVILEGES ON ${DBNAME}.* TO '${DBNAME}'@'%' \
     IDENTIFIED BY '${DBPASS}';" \
     | mysql -u${SET_MYSQL_USER} -p${SET_MYSQL_PASS}
-}
-# args: dbname dbpass conf_file
-mysql_set_conf()
-{
-  local DBNAME=$1
-  local DBPASS=$2
-  local CONF_FILE=$3
-
-  add_args_to_section $CONF_FILE "\[DEFAULT\]" "connection"
-  set_conf_arg "connection" \
-  "connection=mysql://${DBNAME}:${DBPASS}@${SET_MYSQL_IP}:${SET_MYSQL_PORT}/${DBNAME}" $CONF_FILE
 }
 
 # args: dbname dbpass
