@@ -3,11 +3,14 @@ SCRIPT_NAME=openshit.sh
 CONFIG_FILE=setting.conf
 SERVICE_FILE=service.conf
 SERVICE_PATH=services
-CONFIG_BAK_PATH=config_bak
 SERVICE_ENV_FILE=service-env.sh
 ADMIN_ENV_FILE=admin-env.sh
 PRE_INSTALL_FILE=pre-install.sh
 CONFIG_EDITOR=conf_editor.py
+
+if [ -z "$CONFIG_BAK_PATH" ]; then
+  export CONFIG_BAK_PATH="config-backup-"$(date "+%Y-%m-%d_%H,%M,%S")
+fi
 
 # args: FILE_NAME
 load_file()
