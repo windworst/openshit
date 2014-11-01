@@ -52,7 +52,7 @@ create_user()
   keystone role-create --name _member_
   keystone user-role-add --tenant $SET_KEYSTONE_ADMIN_TENANT --user $SET_KEYSTONE_ADMIN --role _member_
 
-  keystone tenant-create --name service --description "Service Tenant"
+  keystone tenant-create --name service
   keystone service-create --name $SERVICE_NAME --type identity
 
   keystone_create_endpoint $SERVICE_NAME \
@@ -94,8 +94,8 @@ keystone_edit_conf()
   echo "admin_password = $PASS"
 }
 
-# args: user pass type
-keystone_create_user_service()
+# args: user pass
+keystone_create_user()
 {
   load_admin_env
   local USER=$1
@@ -103,7 +103,14 @@ keystone_create_user_service()
   local TYPE=$3
   keystone user-create --name $USER --pass $PASS
   keystone user-role-add --user $USER --tenant service --role $SET_KEYSTONE_ADMIN_ROLE
-  keystone service-create --name $USER --type $TYPE
+}
+
+# args: service_name
+keystone_delete_user()
+{
+  local SERV_NAME=$1
+  load_admin_env
+  keystone user-delete $SERV_NAME
 }
 
 # args: service_name public_url internal_url admin_url
@@ -122,11 +129,17 @@ keystone_create_endpoint()
     --region regionOne
 }
 
-# args: service_name
-keystone_delete_user_service()
+# args: service_name service_type
+keystone_create_service()
 {
   local SERV_NAME=$1
-  load_admin_env
-  keystone user-delete $SERV_NAME
+  local TYPE=$2
+  keystone service-create --name $SERV_NAME --type $TYPE
+}
+
+# args: service_name
+keystone_delete_service()
+{
+  local SERV_NAME=$1
   keystone service-delete $SERV_NAME
 }

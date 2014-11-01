@@ -104,14 +104,16 @@ edit_nova_conf()
 
 create_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_NEUTRON_PASS network
+  $SERVICE_OPENSTACK_IDENTITY"_create_user" $SERVICE_NAME $SET_NEUTRON_PASS
+  $SERVICE_OPENSTACK_IDENTITY"_create_service" $SERVICE_NAME network
   $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
-    "http://$SET_NEUTRON_IP:9696" \
-    "http://$SET_NEUTRON_IP:9696" \
-    "http://$SET_NEUTRON_IP:9696"
+    http://$SET_NEUTRON_IP:9696 \
+    http://$SET_NEUTRON_IP:9696 \
+    http://$SET_NEUTRON_IP:9696
 }
 
 delete_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_delete_user_service" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_user" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_service" $SERVICE_NAME
 }

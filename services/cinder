@@ -42,13 +42,14 @@ edit_cinder_conf()
 
 create_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_CINDER_PASS volume
+  $SERVICE_OPENSTACK_IDENTITY"_create_user" $SERVICE_NAME $SET_CINDER_PASS
+  $SERVICE_OPENSTACK_IDENTITY"_create_service" $SERVICE_NAME volume
   $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
     http://$SET_CINDER_IP:8776/v1/%\(tenant_id\)s \
     http://$SET_CINDER_IP:8776/v1/%\(tenant_id\)s \
     http://$SET_CINDER_IP:8776/v1/%\(tenant_id\)s
 
-  $SERVICE_OPENSTACK_IDENTITY service-create --name $SERVICE_NAME"v2" --type volumev2
+  $SERVICE_OPENSTACK_IDENTITY"_create_service" $SERVICE_NAME"v2" volumev2
   $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME"v2" \
     http://$SET_CINDER_IP:8776/v2/%\(tenant_id\)s \
     http://$SET_CINDER_IP:8776/v2/%\(tenant_id\)s \
@@ -57,5 +58,7 @@ create_user()
 
 delete_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_delete_user_service" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_user" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_service" $SERVICE_NAME"v2"
+  $SERVICE_OPENSTACK_IDENTITY"_delete_service" $SERVICE_NAME
 }

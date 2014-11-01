@@ -62,12 +62,14 @@ edit_glance_registry_conf()
 
 delete_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_delete_user_service" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_user" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_service" $SERVICE_NAME
 }
 
 create_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_GLANCE_PASS image
+  $SERVICE_OPENSTACK_IDENTITY"_create_user" $SERVICE_NAME $SET_GLANCE_PASS
+  $SERVICE_OPENSTACK_IDENTITY"_create_service" $SERVICE_NAME image
   $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
     http://$SET_GLANCE_IP:9292 \
     http://$SET_GLANCE_IP:9292 \

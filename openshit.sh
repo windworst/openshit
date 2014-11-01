@@ -8,8 +8,9 @@ ADMIN_ENV_FILE=admin-env.sh
 PRE_INSTALL_FILE=pre-install.sh
 CONFIG_EDITOR=conf_editor.py
 
+CONFIG_ROLLBACK_SCRIPT=rollback.sh
 if [ -z "$CONFIG_BAK_PATH" ]; then
-  export CONFIG_BAK_PATH="config-backup-"$(date "+%Y-%m-%d_%H,%M,%S")
+  export CONFIG_BAK_PATH="config-backups/"$(date "+%Y-%m-%d_%H,%M,%S")
 fi
 
 # args: FILE_NAME
@@ -45,12 +46,23 @@ edit_config_file()
   local FILE_PATH=$1
   local FUNC_NAME=$2
   local FILE_NAME=${FILE_PATH##*/}
+  local BAK_FILE_NAME=$FILE_NAME"-"$(date "+%Y-%m-%d_%H,%M,%S")
+
   mkdir -p $CONFIG_BAK_PATH &>/dev/null
-  sudo cp $FILE_PATH $CONFIG_BAK_PATH/$FILE_NAME
-  sudo chmod 777 $CONFIG_BAK_PATH/$FILE_NAME
+
   shift 2
   echo "Configuring $FILE_PATH ..."
-  $FUNC_NAME $@ | python $CONFIG_EDITOR $CONFIG_BAK_PATH/$FILE_NAME | sudo tee $FILE_PATH &>/dev/null
+  if sudo cp $FILE_PATH $CONFIG_BAK_PATH/$BAK_FILE_NAME && $FUNC_NAME $@ \
+    | sudo python $CONFIG_EDITOR $CONFIG_BAK_PATH/$BAK_FILE_NAME | sudo tee $FILE_PATH &>/dev/null; then
+
+    #set roll-back script
+    local ROLL_BACK_TMP=$CONFIG_ROLLBACK_SCRIPT".tmp"
+    mv $CONFIG_BAK_PATH/$CONFIG_ROLLBACK_SCRIPT $CONFIG_BAK_PATH/$ROLL_BACK_TMP 2> /dev/null
+    echo "sudo cp $BAK_FILE_NAME $FILE_PATH" > $CONFIG_BAK_PATH/$CONFIG_ROLLBACK_SCRIPT
+    cat $CONFIG_BAK_PATH/$ROLL_BACK_TMP >> $CONFIG_BAK_PATH/$CONFIG_ROLLBACK_SCRIPT 2>/dev/null
+    chmod a+x $CONFIG_BAK_PATH/$CONFIG_ROLLBACK_SCRIPT
+    rm -f $CONFIG_BAK_PATH/$ROLL_BACK_TMP
+  fi
 }
 
 call_pre_install()

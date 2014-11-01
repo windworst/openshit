@@ -63,7 +63,8 @@ edit_nova_compute_conf()
 
 create_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_create_user_service" $SERVICE_NAME $SET_NOVA_PASS compute
+  $SERVICE_OPENSTACK_IDENTITY"_create_user" $SERVICE_NAME $SET_NOVA_PASS
+  $SERVICE_OPENSTACK_IDENTITY"_create_service" $SERVICE_NAME compute
   $SERVICE_OPENSTACK_IDENTITY"_create_endpoint" $SERVICE_NAME \
     http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s \
     http://$SET_NOVA_IP:8774/v2/%\(tenant_id\)s \
@@ -72,5 +73,6 @@ create_user()
 
 delete_user()
 {
-  $SERVICE_OPENSTACK_IDENTITY"_delete_user_service" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_user" $SERVICE_NAME
+  $SERVICE_OPENSTACK_IDENTITY"_delete_service" $SERVICE_NAME
 }
