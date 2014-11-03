@@ -6,9 +6,12 @@ PACKAGE_LIST="neutron-server neutron-plugin-ml2 python-neutronclient\
   neutron-l3-agent neutron-dhcp-agent ipset"
 SERVICE_LIST+=" nova-api nova-scheduler nova-conductor nova-compute neutron-server \
   neutron-plugin-openvswitch-agent neutron-l3-agent neutron-dhcp-agent \
-  neutron-metadata-agent"
+  neutron-metadata-agent openvswitch-switch"
 NEUTRON_CONF_FILE=/etc/neutron/neutron.conf
-NEUTRON_M2_CONF_FILE=/etc/neutron/plugins/ml2/ml2_conf.ini
+ML2_CONF_INI_FILE=/etc/neutron/plugins/ml2/ml2_conf.ini
+L3_AGENT_INI_FILE=/etc/neutron/l3_agent.ini
+DHCP_AGENT_INI_FILE=/etc/neutron/dhcp_agent.ini
+METADATA_AGENT_INI_FILE=/etc/neutron/metadata_agent.ini
 
 func_neutron_clean()
 {
@@ -25,15 +28,18 @@ func_neutron_config()
   create_user
   edit_conf
   sudo  su -s /bin/sh -c "neutron-db-manage --config-file $NEUTRON_CONF_FILE \
-      --config-file $NEUTRON_M2_CONF_FILE upgrade juno" neutron
+      --config-file $ML2_CONF_INI_FILE upgrade juno" neutron
   func_service restart
 }
 
 edit_conf()
 {
   edit_config_file $NEUTRON_CONF_FILE edit_neutron_conf
-  edit_config_file $NEUTRON_M2_CONF_FILE edit_m2_conf
+  edit_config_file $ML2_CONF_INI_FILE edit_ml2_conf
   edit_config_file $NOVA_CONF_FILE edit_nova_conf
+  edit_config_file $L3_AGENT_INI_FILE edit_l3_agent_ini
+  edit_config_file $DHCP_AGENT_INI_FILE edit_dhcp_agent_ini
+  edit_config_file $METADATA_AGENT_INI_FILE edit_metadata_agent_ini
 }
 
 edit_neutron_conf()
@@ -60,7 +66,7 @@ edit_neutron_conf()
   $SERVICE_MESSAGE_QUEUE"_edit_rpc_config"
 }
 
-edit_m2_conf()
+edit_ml2_conf()
 {
   echo "[ml2]"
   echo "type_drivers = flat,gre"
@@ -100,6 +106,39 @@ edit_nova_conf()
   echo "admin_tenant_name = service"
   echo "admin_username = neutron"
   echo "admin_password = $SET_NEUTRON_PASS"
+  echo "service_metadata_proxy = True"
+  echo "metadata_proxy_shared_secret = $SET_NEUTRON_METADATA_SECRET"
+}
+
+edit_l3_agent_ini()
+{
+  echo "[DEFAULT]"
+  echo "interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver"
+  echo "use_namespaces = True"
+  echo "external_network_bridge = br-ex"
+  echo "verbose = True"
+}
+
+edit_dhcp_agent_ini()
+{
+  echo "[DEFAULT]"
+  echo "interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver"
+  echo "dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq"
+  echo "use_namespaces = True"
+  echo "verbose = True"
+}
+
+edit_metadata_agent_ini()
+{
+  echo "[DEFAULT]"
+  echo "auth_url = ${SET_KEYSTONE_AUTH_URL_PUBLIC}"
+  echo "auth_region = regionOne"
+  echo "admin_tenant_name = service"
+  echo "admin_user = $SERVICE_NAME"
+  echo "admin_password = $SET_NOVA_PASS"
+  echo "nova_metadata_ip = $SET_NOVA_IP"
+  echo "verbose = True"
+  echo "metadata_proxy_shared_secret = $SET_NEUTRON_METADATA_SECRET"
 }
 
 create_user()
